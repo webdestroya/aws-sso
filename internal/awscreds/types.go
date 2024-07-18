@@ -1,0 +1,3 @@
+package awscreds
+
+// type

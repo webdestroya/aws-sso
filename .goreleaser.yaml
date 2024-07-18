@@ -1,0 +1,51 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+
+# The lines below are called `modelines`. See `:help modeline`
+# Feel free to remove those if you don't want/need to use them.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    binary: awssso
+    id: awssso
+    ldflags:
+      - "-s -w -X main.buildVersion={{.Version}} -X main.buildSha={{.Commit}}"
+
+brews:
+  - tap:
+      owner: webdestroya
+      name: homebrew-tap
+      branch: bump-brew-awssso
+    folder: Formula
+    homepage: https://github.com/webdestroya/awssso
+    folder: Formula
+    url_template: "https://github.com/webdestroya/awssso/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    description: "Writes credentials for AWS SSO'd accounts so that older applications can use them."
+    skip_upload: auto
+    license: "MIT"
+    test: |
+      system "#{bin}/awssso --help"
+    install: |
+      bin.install "awssso"
+
+universal_binaries:
+  - id: awssso
+    name_template: "{{ .ProjectName }}"
+    replace: false
+
+checksum:
+  disable: true
