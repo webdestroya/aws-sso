@@ -2,7 +2,6 @@ package ssoauth
 
 import (
 	"context"
-	"io"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -28,17 +27,15 @@ type SSOAuth struct {
 	tokenPath     string
 	provider      aws.CredentialsProvider
 
-	Output io.Writer
 	Logger logging.Logger
 }
 
-func New(ctx context.Context, out io.Writer, profile string) (*SSOAuth, error) {
+func New(ctx context.Context, profile string) (*SSOAuth, error) {
 
-	logImpl := awslogger.NewLogAll(out)
+	logImpl := awslogger.NewLogNone()
 
 	sa := &SSOAuth{
 		Ctx:         ctx,
-		Output:      out,
 		ProfileName: profile,
 		Logger:      logImpl,
 	}

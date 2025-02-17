@@ -16,7 +16,7 @@ func NewLogAll(dest io.Writer) logging.Logger {
 	return logging.NewStandardLogger(dest)
 }
 
-func NewLogNone(dest io.Writer) logging.Logger {
+func NewLogNone(dest ...io.Writer) logging.Logger {
 	return &logging.Nop{}
 }
 

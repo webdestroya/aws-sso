@@ -2,17 +2,23 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	"slices"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials/ssocreds"
+	"github.com/aws/aws-sdk-go-v2/service/sso"
+	"github.com/aws/aws-sdk-go-v2/service/ssooidc"
 	"github.com/spf13/cobra"
-	"github.com/webdestroya/awssso/internal/confreader"
+	"github.com/webdestroya/awssso/internal/awslogger"
+	"github.com/webdestroya/awssso/internal/awsutils"
+	"gopkg.in/ini.v1"
 )
 
 var syncCmd = &cobra.Command{
 	Use:          "sync [profile...]",
 	Short:        "Sync AWS credentials. (This will overwrite the profile credentials!)",
+	Example:      "awssso sync mycompany-production",
 	Args:         cobra.ArbitraryArgs,
 	RunE:         runSyncCmd,
 	SilenceUsage: true,
@@ -23,32 +29,13 @@ var (
 	errNotSSOProfile = errors.New("Profile is not an SSO-based profile")
 )
 
-var (
-	errorStatus   = errorStyle.Render("ERROR")
-	statusSuccess = successStyle.Render("SUCCESS")
-)
-
 func init() {
 	rootCmd.AddCommand(syncCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// syncCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// syncCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 func runSyncCmd(cmd *cobra.Command, args []string) error {
 
-	slices.Sort(args)
 	profilesList := slices.Compact(args)
-	fmt.Fprintln(cmd.OutOrStdout(), "Heyooo", profilesList)
-
-	confreader.ReadAwsConfig()
 
 	failCount := 0
 
@@ -100,21 +87,77 @@ func syncProfile(cmd *cobra.Command, profile string) error {
 
 	// cmd.Println()
 
-	cfg, err := config.LoadSharedConfigProfile(cmd.Context(), profile, withLogger)
+	cfg, err := awsutils.LoadSharedConfigProfile(cmd.Context(), profile)
 	if err != nil {
 		return err
 	}
-
-	vPrintf(cmd, "  Profile: %s\n", cfg.Profile)
-	vPrintf(cmd, "  SSO Name: %s\n", cfg.SSOSessionName)
-	vPrintf(cmd, "  SSO Session: %v\n", cfg.SSOSession)
-	vPrintf(cmd, "  CredSource: %v\n", cfg.CredentialSource)
-	vPrintf(cmd, "  Creds: %v\n", cfg.Credentials)
 
 	if cfg.SSOSession == nil {
 		// cmd.Printf(errorStyle.Render(fmt.Sprintf("ERROR: Profile '%s' is not an SSO-based AWS profile.", cfg.Profile)))
 		return errNotSSOProfile
 	}
+
+	ssoRegion := cfg.SSOSession.SSORegion
+
+	vPrintf(cmd, "  Profile:  %s\n", cfg.Profile)
+	vPrintf(cmd, "  SSO Name: %s\n", cfg.SSOSessionName)
+	vPrintf(cmd, "  Region:   %s\n", ssoRegion)
+
+	defConfig, err := config.LoadDefaultConfig(cmd.Context(),
+		config.WithSharedConfigProfile(profile),
+		config.WithRegion(ssoRegion),
+		config.WithLogger(awslogger.NewLogNone()),
+	)
+	if err != nil {
+		return err
+	}
+
+	iniOpts := ini.LoadOptions{
+		Loose:             true,
+		AllowNestedValues: true,
+	}
+
+	credsIni, err := ini.LoadSources(iniOpts, config.DefaultSharedCredentialsFilename())
+	if err != nil {
+		return err
+	}
+
+	ssoClient := sso.NewFromConfig(defConfig)
+	ssoOidcClient := ssooidc.NewFromConfig(defConfig)
+	tokenPath, err := ssocreds.StandardCachedTokenFilepath(cfg.SSOSessionName)
+	if err != nil {
+		return err
+	}
+
+	var provider aws.CredentialsProvider
+	provider = ssocreds.New(ssoClient, cfg.SSOAccountID, cfg.SSORoleName, cfg.SSOSession.SSOStartURL, func(options *ssocreds.Options) {
+		options.SSOTokenProvider = ssocreds.NewSSOTokenProvider(ssoOidcClient, tokenPath, func(o *ssocreds.SSOTokenProviderOptions) {
+			o.ClientOptions = append(o.ClientOptions, func(o2 *ssooidc.Options) {
+				o2.Region = ssoRegion
+				o2.Logger = awslogger.NewLogNone()
+			})
+		})
+	})
+
+	// provider = aws.NewCredentialsCache(provider)
+
+	credsIni.DeleteSection(profile)
+
+	newSect, err := credsIni.NewSection(profile)
+	if err != nil {
+		return err
+	}
+
+	creds, err := provider.Retrieve(cmd.Context())
+	if err != nil {
+		return err
+	}
+
+	newSect.NewKey("aws_access_key_id", creds.AccessKeyID)
+	newSect.NewKey("aws_secret_access_key", creds.SecretAccessKey)
+	newSect.NewKey("aws_session_token", creds.SessionToken)
+
+	credsIni.SaveTo("dummy.ini")
 
 	return nil
 }

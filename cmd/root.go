@@ -28,6 +28,10 @@ func Execute(ver string, gitsha string) {
 		runtime.GOOS,
 		runtime.GOARCH,
 	)
+
+	rootCmd.SetOut(os.Stdout)
+	rootCmd.SetErr(os.Stderr)
+
 	err := rootCmd.ExecuteContext(context.TODO())
 	if err != nil {
 		os.Exit(1)
