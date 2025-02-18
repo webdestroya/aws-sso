@@ -1,6 +1,12 @@
 package main
 
-import "github.com/webdestroya/awssso/cmd"
+import (
+	"fmt"
+	"runtime/debug"
+
+	"github.com/webdestroya/awssso/cmd"
+	"github.com/webdestroya/awssso/internal/utils"
+)
 
 var (
 	buildVersion = "development"
@@ -8,5 +14,9 @@ var (
 )
 
 func main() {
+	if info, ok := debug.ReadBuildInfo(); ok {
+		out, _ := utils.JsonifyPretty(info)
+		fmt.Printf("JSON: %s\n", out)
+	}
 	cmd.Execute(buildVersion, buildSha)
 }
