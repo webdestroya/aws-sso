@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssooidc"
 	"github.com/aws/smithy-go/logging"
 	"github.com/webdestroya/awssso/internal/awslogger"
-	"github.com/webdestroya/awssso/internal/util"
+	util "github.com/webdestroya/awssso/internal/utils"
 )
 
 type SSOAuth struct {

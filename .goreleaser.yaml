@@ -8,6 +8,8 @@
 
 version: 2
 
+project_name: awssso
+
 before:
   hooks:
     - go mod tidy
@@ -17,6 +19,8 @@ builds:
       - CGO_ENABLED=0
     goos:
       - darwin
+      - linux
+      - windows
     goarch:
       - amd64
       - arm64
@@ -26,13 +30,12 @@ builds:
       - "-s -w -X main.buildVersion={{.Version}} -X main.buildSha={{.Commit}}"
 
 brews:
-  - tap:
+  - repository:
       owner: webdestroya
       name: homebrew-tap
       branch: bump-brew-awssso
-    folder: Formula
+    directory: Formula
     homepage: https://github.com/webdestroya/awssso
-    folder: Formula
     url_template: "https://github.com/webdestroya/awssso/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
     description: "Writes credentials for AWS SSO'd accounts so that older applications can use them."
     skip_upload: auto

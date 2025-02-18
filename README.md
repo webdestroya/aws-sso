@@ -1,5 +1,16 @@
 # aws-sso
 
+## Usage
+
+> [!WARNING]
+> This will be modifying your AWS credentials file. Please create a backup before using this program just in case.**
+
+## Installation
+
+```shell
+brew install webdestroya/tap/awssso
+```
+
 
 ## Shell Alternative
 You don't even need this program, you can do this entirely within the awscli itself.
