@@ -1,4 +1,4 @@
-module github.com/webdestroya/awssso
+module github.com/webdestroya/aws-sso
 
 go 1.24.0
 

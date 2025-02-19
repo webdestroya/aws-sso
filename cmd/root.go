@@ -10,8 +10,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/webdestroya/awssso/internal/appconfig"
-	"github.com/webdestroya/awssso/internal/runners/rootrunner"
+	"github.com/webdestroya/aws-sso/internal/appconfig"
+	"github.com/webdestroya/aws-sso/internal/runners/rootrunner"
 )
 
 var (
@@ -80,7 +80,7 @@ func initConfig() {
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
+	if err := viper.ReadInConfig(); err != nil {
 		if !errors.As(err, &viper.ConfigFileNotFoundError{}) {
 			fmt.Fprintf(os.Stderr, "Failed to load config: %s\n\n", err.Error())
 		}

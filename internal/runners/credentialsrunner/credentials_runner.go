@@ -10,9 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials/ssocreds"
 	"github.com/aws/aws-sdk-go-v2/service/sso"
 	"github.com/spf13/cobra"
-	"github.com/webdestroya/awssso/internal/runners/loginrunner"
-	"github.com/webdestroya/awssso/internal/utils"
-	"github.com/webdestroya/awssso/internal/utils/awsutils"
+	"github.com/webdestroya/aws-sso/internal/runners/loginrunner"
+	"github.com/webdestroya/aws-sso/internal/utils"
+	"github.com/webdestroya/aws-sso/internal/utils/awsutils"
 )
 
 func RunE(cmd *cobra.Command, args []string) error {

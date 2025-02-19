@@ -10,7 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/spf13/cobra"
-	"github.com/webdestroya/awssso/internal/utils"
+	"github.com/webdestroya/aws-sso/internal/utils"
 	"gopkg.in/ini.v1"
 )
 

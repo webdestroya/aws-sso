@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	"github.com/webdestroya/awssso/cmd"
-	"github.com/webdestroya/awssso/internal/utils"
+	"github.com/webdestroya/aws-sso/cmd"
+	"github.com/webdestroya/aws-sso/internal/utils"
 )
 
 var (

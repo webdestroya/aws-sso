@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/spf13/cobra"
-	"github.com/webdestroya/awssso/internal/runners/credentialsrunner"
+	"github.com/webdestroya/aws-sso/internal/runners/credentialsrunner"
 	"gopkg.in/ini.v1"
 )
 

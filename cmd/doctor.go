@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/webdestroya/awssso/internal/runners/doctorrunner"
+	"github.com/webdestroya/aws-sso/internal/runners/doctorrunner"
 )
 
 var doctorCmd = &cobra.Command{

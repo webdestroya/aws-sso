@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/webdestroya/awssso/internal/runners/credentialsrunner"
+	"github.com/webdestroya/aws-sso/internal/runners/credentialsrunner"
 )
 
 var credentialsCmd = &cobra.Command{

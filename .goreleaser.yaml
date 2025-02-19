@@ -35,8 +35,8 @@ brews:
       name: homebrew-tap
       branch: bump-brew-awssso
     directory: Formula
-    homepage: https://github.com/webdestroya/awssso
-    url_template: "https://github.com/webdestroya/awssso/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    homepage: https://github.com/webdestroya/aws-sso
+    url_template: "https://github.com/webdestroya/aws-sso/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
     description: "Writes credentials for AWS SSO'd accounts so that older applications can use them."
     skip_upload: auto
     license: "MIT"

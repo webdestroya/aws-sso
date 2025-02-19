@@ -16,8 +16,8 @@ import (
 	ssooidcTypes "github.com/aws/aws-sdk-go-v2/service/ssooidc/types"
 	"github.com/spf13/cobra"
 	"github.com/toqueteos/webbrowser"
-	"github.com/webdestroya/awssso/internal/utils"
-	"github.com/webdestroya/awssso/internal/utils/awsutils"
+	"github.com/webdestroya/aws-sso/internal/utils"
+	"github.com/webdestroya/aws-sso/internal/utils/awsutils"
 )
 
 var (
