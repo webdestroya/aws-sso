@@ -2,6 +2,7 @@ package doctorrunner
 
 import (
 	"errors"
+	"maps"
 	"os"
 	"regexp"
 	"slices"
@@ -18,40 +19,11 @@ var (
 )
 
 const (
-	ssoSessionKey = `sso_session`
+	ssoSessionKey  = `sso_session`
+	ssoStartUrlKey = `sso_start_url`
 )
 
 func RunE(cmd *cobra.Command, args []string) error {
-
-	// cmd.Printf("Checking aws command...")
-	// if awsCliPath, err := exec.LookPath("aws"); err == nil {
-	// 	cmd.Println(awsCliPath)
-
-	// 	cmd.Printf("Checking aws version...")
-	// 	awsCmd := exec.CommandContext(cmd.Context(), awsCliPath, "--version")
-	// 	awsVersionOut, err2 := awsCmd.CombinedOutput()
-	// 	if err2 == nil {
-
-	// 		awsVer := parseAwsVersion(string(awsVersionOut))
-
-	// 		if strings.HasPrefix(awsVer, "2.") {
-	// 			cmd.Printf("OK (%s)\n", awsVer)
-	// 		} else {
-	// 			cmd.Print(errorStyle.Render("ERROR"))
-	// 			cmd.Printf(" - unsupported version (%s)\n", awsVer)
-	// 		}
-	// 	} else {
-	// 		cmd.Print(errorStyle.Render("ERROR"))
-	// 		cmd.Printf(" - %s [%s]\n", err2.Error(), strings.TrimSpace(string(awsVersionOut)))
-	// 	}
-
-	// } else {
-	// 	cmd.Print(errorStyle.Render("ERROR"))
-	// 	cmd.Println(" - awscli installation not found!")
-	// }
-
-	// cmd.Println()
-
 	if err := checkAwsConfig(cmd); err != nil {
 		return err
 	}
@@ -59,22 +31,11 @@ func RunE(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-// func parseAwsVersion(output string) string {
-// 	for _, ver := range strings.Split(output, " ") {
-// 		if strings.HasPrefix(ver, "aws-cli/") {
-// 			realVer, _ := strings.CutPrefix(ver, "aws-cli/")
-// 			return realVer
-// 		}
-// 	}
-
-// 	return "0.0.0"
-// }
-
 func checkAwsConfig(cmd *cobra.Command) error {
 
 	awsCfgFile := config.DefaultSharedConfigFilename()
 
-	cmd.Print("Checking .aws/config file...")
+	cmd.Printf("Checking %s file...", awsCfgFile)
 	if _, err := os.Stat(awsCfgFile); err == nil {
 		cmd.Printf("EXISTS (%s)\n", awsCfgFile)
 	} else if errors.Is(err, os.ErrNotExist) {
@@ -124,22 +85,18 @@ func checkAwsConfig(cmd *cobra.Command) error {
 		AllowNestedValues:       true,
 		Loose:                   true,
 	}, configFile, utils.ToAnySlice(otherCfgFiles)...)
-	if err != nil {
+	if err != nil || len(cfgFileIni.Sections()) == 0 {
 		cmd.Println(utils.ErrorStyle.Render("ERROR"), "Failed to read/parse config file", err.Error())
 	}
 
 	// map of sso sessions and a list of profiles using that
 	usageMap := make(map[string][]string, 0)
-
-	// TODO: Check for legacy SSO configs
-	// TODO: check for legacy profile specs
+	legacyUsageMap := make(map[string][]string, 0)
 
 	cmd.Print("Checking for sso configurations...")
 	ssoNames := make([]string, 0, 10)
 	for _, section := range cfgFileIni.Sections() {
 		sectName := section.Name()
-
-		// cmd.Printf("SECTION: %s\n", sectName)
 
 		if ssoName, has := strings.CutPrefix(sectName, "sso-session "); has {
 			ssoNames = append(ssoNames, ssoName)
@@ -149,6 +106,12 @@ func checkAwsConfig(cmd *cobra.Command) error {
 				if skey, serr := section.GetKey(ssoSessionKey); serr == nil {
 					ssoName := skey.String()
 					usageMap[ssoName] = append(usageMap[ssoName], profName)
+				}
+			} else if section.HasKey(ssoStartUrlKey) {
+				// Legacy SSO
+				if skey, serr := section.GetKey(ssoStartUrlKey); serr == nil {
+					ssoName := skey.String()
+					legacyUsageMap[ssoName] = append(legacyUsageMap[ssoName], profName)
 				}
 			}
 		}
@@ -173,6 +136,22 @@ func checkAwsConfig(cmd *cobra.Command) error {
 	}
 
 	// LOOK FOR LEGACY PROFILES
+	legacyUrls := slices.Collect(maps.Keys(legacyUsageMap))
+	if len(legacyUrls) > 0 {
+		cmd.Println()
+		cmd.Printf("Also found %d legacy SSO configurations:\n", len(legacyUrls))
+		for _, v := range legacyUrls {
+			cmd.Printf(" * %s ", v)
+			if profiles, ok := legacyUsageMap[v]; ok {
+				slices.Sort(profiles)
+				cmd.Printf("(Used By: %s)", strings.Join(profiles, ", "))
+			} else {
+				cmd.Print("(Not used by any profiles)")
+			}
+			cmd.Println()
+		}
+		foundSSO = true
+	}
 
 	if !foundSSO {
 		cmd.Println(utils.ErrorStyle.Render("NONE"), "No 'sso-session' entries found. You need to configure SSO!")

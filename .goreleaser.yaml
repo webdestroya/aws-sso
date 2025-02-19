@@ -40,6 +40,9 @@ brews:
     description: "Writes credentials for AWS SSO'd accounts so that older applications can use them."
     skip_upload: auto
     license: "MIT"
+    commit_author:
+      name: cloud87bot
+      email: 114977785+cloud87bot@users.noreply.github.com
     test: |
       system "#{bin}/awssso --help"
     install: |
