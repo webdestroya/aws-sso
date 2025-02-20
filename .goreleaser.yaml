@@ -31,6 +31,11 @@ builds:
     ldflags:
       - "-s -w -X main.buildVersion={{.Version}} -X main.buildSha={{.Commit}}"
 
+# proxies from the go mod proxy before building
+# https://goreleaser.com/customization/gomod
+gomod:
+  proxy: true
+
 archives:
   - formats:
       - tar.gz
@@ -88,8 +93,38 @@ universal_binaries:
     name_template: "{{ .ProjectName }}"
     replace: false
 
+
+# config the checksum filename
+# https://goreleaser.com/customization/checksum
 checksum:
-  disable: true
+  name_template: "checksums.txt"
+
+# create a source tarball
+# https://goreleaser.com/customization/source/
+source:
+  enabled: true
+
+# creates SBOMs of all archives and the source tarball using syft
+# https://goreleaser.com/customization/sbom
+sboms:
+  - artifacts: archive
+  - id: source # Two different sbom configurations need two different IDs
+    artifacts: source
+
+# signs the checksum file
+# all files (including the sboms) are included in the checksum, so we don't need to sign each one if we don't want to
+# https://goreleaser.com/customization/sign
+signs:
+  - cmd: cosign
+    certificate: "${artifact}.pem"
+    args:
+      - sign-blob
+      - "--output-certificate=${certificate}"
+      - "--output-signature=${signature}"
+      - "${artifact}"
+      - "--yes" # needed on cosign 2.0.0+
+    artifacts: checksum
+    output: true
 
 changelog:
   sort: asc
@@ -97,3 +132,28 @@ changelog:
     exclude:
       - "^docs:"
       - "^test:"
+
+# create a docker image
+# https://goreleaser.com/customization/docker
+dockers:
+  - image_templates:
+      - "ghcr.io/webdestroya/aws-sso:{{ .Tag }}"
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.name={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+
+# signs our docker image
+# https://goreleaser.com/customization/docker_sign
+docker_signs:
+  - cmd: cosign
+    artifacts: images
+    output: true
+    args:
+      - "sign"
+      - "${artifact}"
+      - "--yes" # needed on cosign 2.0.0+
