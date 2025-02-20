@@ -11,6 +11,7 @@ require (
 	github.com/aws/smithy-go v1.20.4
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/spf13/cobra v1.8.1
+	github.com/spf13/viper v1.19.0
 	github.com/toqueteos/webbrowser v1.2.0
 	gopkg.in/ini.v1 v1.67.0
 )
@@ -266,7 +267,6 @@ require (
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.7.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.19.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/theupdateframework/go-tuf v0.7.0 // indirect
 	github.com/titanous/rocacheck v0.0.0-20171023193734-afe73141d399 // indirect

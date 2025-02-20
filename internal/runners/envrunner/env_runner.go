@@ -16,8 +16,6 @@ func Run(cmd *cobra.Command, args []string) {
 
 func RunE(cmd *cobra.Command, args []string) error {
 
-	// cmd.Printf("ARGS: %v\n", args)
-
 	profile, args := args[0], args[1:]
 
 	command, args := args[0], args[1:]
@@ -29,23 +27,17 @@ func RunE(cmd *cobra.Command, args []string) error {
 		command, args = args[0], args[1:]
 	}
 
-	// cmd.Printf("COMMAND: %s\n", command)
-	// cmd.Printf("CARGS: %v\n", args)
-
 	binPath, err := exec.LookPath(command)
 	if err != nil {
 		return err
 	}
-	// cmd.Printf("BinPath: %s\n", binPath)
 
 	credinfo, err := credentialsrunner.GetAWSCredentials(cmd.Context(), cmd.OutOrStdout(), profile)
 	if err != nil {
 		return err
 	}
-	// cmd.Printf("Got Creds\n")
 
 	env := os.Environ()
-	// env := make([]string, 0)
 
 	env = append(env, fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", credinfo.AccessKeyID))
 	env = append(env, fmt.Sprintf("AWS_SECRET_ACCESS_KEY=%s", credinfo.SecretAccessKey))

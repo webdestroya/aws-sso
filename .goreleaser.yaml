@@ -26,8 +26,26 @@ builds:
       - arm64
     binary: awssso
     id: awssso
+    flags:
+      - -trimpath
     ldflags:
       - "-s -w -X main.buildVersion={{.Version}} -X main.buildSha={{.Commit}}"
+
+archives:
+  - formats:
+      - tar.gz
+    # this name template makes the OS and Arch compatible with the results of `uname`.
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    # use zip for windows archives
+    format_overrides:
+      - goos: windows
+        formats: ["zip"]
 
 brews:
   - repository:
@@ -48,6 +66,22 @@ brews:
     install: |
       bin.install "awssso"
 
+nfpms:
+  - id: nfpm-default
+    package_name: awssso
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    vendor: Mitch Dempsey
+    homepage: https://github.com/webdestroya/aws-sso
+    maintainer: Mitch Dempsey <webdestroya@users.noreply.github.com>
+    description: "Writes credentials for AWS SSO'd accounts so that older applications can use them."
+    license: MIT
+    section: utils
+    priority: extra
+    formats:
+      - deb
+      - rpm
+      - apk
+
 universal_binaries:
   - id: awssso
     name_template: "{{ .ProjectName }}"
@@ -55,3 +89,10 @@ universal_binaries:
 
 checksum:
   disable: true
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"

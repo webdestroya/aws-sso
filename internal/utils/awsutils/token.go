@@ -55,6 +55,10 @@ func (t *AwsTokenInfo) Expired() bool {
 // github.com/aws/aws-sdk-go-v2/credentials@v1.17.26/ssocreds/sso_cached_token.go
 type RFC3339 time.Time
 
+func (r RFC3339) String() string {
+	return time.Time(r).String()
+}
+
 func parseRFC3339(v string) (RFC3339, error) {
 	parsed, err := time.Parse(time.RFC3339, v)
 	if err != nil {
