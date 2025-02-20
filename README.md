@@ -16,8 +16,10 @@ brew install webdestroya/tap/awssso
 
 Pull credentials for the listed profiles and update the credentials file
 ```shell
-awssso sync profile1 profile2 profile3
+awssso sync mycompany-staging mycompany-production
 ```
+
+Detailed help can be viewed by passing `--help` to any command.
 
 
 ## Shell Alternative

@@ -11,7 +11,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/webdestroya/aws-sso/internal/appconfig"
-	"github.com/webdestroya/aws-sso/internal/runners/rootrunner"
 )
 
 var (
@@ -22,7 +21,7 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "awssso",
 	Short: "Facilitates usage of AWS sso authentication for older apps",
-	RunE:  rootrunner.RunE,
+	// RunE:  rootrunner.RunE,
 	CompletionOptions: cobra.CompletionOptions{
 		HiddenDefaultCmd: true,
 	},

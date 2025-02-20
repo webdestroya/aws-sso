@@ -9,5 +9,7 @@ func RunE(cmd *cobra.Command, args []string) error {
 
 	// loginFlag, _ := cmd.Flags().GetBool("login")
 
+	cmd.Println("ROOT COMMAND")
+
 	return nil
 }
