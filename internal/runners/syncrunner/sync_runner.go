@@ -1,6 +1,7 @@
 package syncrunner
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -8,7 +9,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/spf13/cobra"
 	"github.com/webdestroya/aws-sso/internal/runners/credentialsrunner"
+	"github.com/webdestroya/aws-sso/internal/utils"
 	"gopkg.in/ini.v1"
+)
+
+const (
+	keyAccessKey    = `aws_access_key_id`
+	keySecretKey    = `aws_secret_access_key`
+	keySessionToken = `aws_session_token`
+	// keyRegion       = `region`
 )
 
 func RunE(cmd *cobra.Command, args []string) error {
@@ -18,7 +27,9 @@ func RunE(cmd *cobra.Command, args []string) error {
 		AllowNestedValues: true,
 	}
 
-	credsIni, err := ini.LoadSources(iniOpts, config.DefaultSharedCredentialsFilename())
+	credsFile := config.DefaultSharedCredentialsFilename()
+
+	credsIni, err := ini.LoadSources(iniOpts, credsFile)
 	if err != nil {
 		return err
 	}
@@ -29,14 +40,19 @@ func RunE(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	credsIni.WriteTo(cmd.OutOrStdout())
+	buf := new(bytes.Buffer)
 
-	return nil
+	_, err = credsIni.WriteTo(buf)
+	if err != nil {
+		return err
+	}
+
+	return utils.AtomicWriteFile(credsFile, buf.Bytes(), 0600)
 }
 
-// func SyncProfile()
-
 func syncCredentials(ctx context.Context, out io.Writer, credsIni *ini.File, profile string) error {
+
+	// region := ""
 
 	if credsIni.HasSection(profile) {
 		sect, err := credsIni.GetSection(profile)
@@ -46,9 +62,13 @@ func syncCredentials(ctx context.Context, out io.Writer, credsIni *ini.File, pro
 
 		// TODO: allow this to be ignored
 		// check to make sure the existing profile isnt something else
-		if !(sect.HasKey("aws_access_key_id") && sect.HasKey("aws_secret_access_key") && sect.HasKey("aws_session_token")) {
+		if !(sect.HasKey(keyAccessKey) && sect.HasKey(keySecretKey) && sect.HasKey(keySessionToken)) {
 			return fmt.Errorf("Profile %s already exists, but does not have AccessKey/SecretAccesKey/SessionToken. It probably is not an SSO profile.", profile)
 		}
+
+		// if v, err := sect.GetKey(keyRegion); err == nil {
+		// 	region = v.MustString(region)
+		// }
 
 		credsIni.DeleteSection(profile)
 	}
@@ -63,9 +83,12 @@ func syncCredentials(ctx context.Context, out io.Writer, credsIni *ini.File, pro
 		return err
 	}
 
-	newSect.NewKey("aws_access_key_id", creds.AccessKeyID)
-	newSect.NewKey("aws_secret_access_key", creds.SecretAccessKey)
-	newSect.NewKey("aws_session_token", creds.SessionToken)
+	newSect.NewKey(keyAccessKey, creds.AccessKeyID)
+	newSect.NewKey(keySecretKey, creds.SecretAccessKey)
+	newSect.NewKey(keySessionToken, creds.SessionToken)
+	// if region != "" {
+	// 	newSect.NewKey(keyRegion, region)
+	// }
 
 	return nil
 }
