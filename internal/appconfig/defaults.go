@@ -7,6 +7,6 @@ import (
 
 func SetDefaults(v *viper.Viper) *viper.Viper {
 	viper.SetDefault("sync.force", false)
-	viper.SetDefault("sync.credentials_path", config.DefaultSharedCredentialsFilename()+"-sso")
+	viper.SetDefault("sync.credentials_path", config.DefaultSharedCredentialsFilename())
 	return v
 }
