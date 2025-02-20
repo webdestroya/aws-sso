@@ -29,12 +29,12 @@ func RunE(cmd *cobra.Command, args []string) error {
 			cmd.Print("  Used By: Not used by any profiles\n")
 		}
 
-		if token, err := awsutils.ReadTokenInfo(entry.StartURL); err == nil {
+		if token, err := awsutils.ReadTokenInfo(entry.ID()); err == nil {
 
 			if token.Expired() {
 				cmd.Printf("  Token: %s\n", utils.WarningStyle.Render("Expired"))
 			} else {
-				cmd.Printf("  Token: %s, expires: %s\n", utils.SuccessStyle.Render("Valid"), token.ExpiresAt.String())
+				cmd.Printf("  Token: %s, Expires: %s\n", utils.SuccessStyle.Render("Valid"), token.ExpiresAt.String())
 
 			}
 

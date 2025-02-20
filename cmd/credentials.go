@@ -6,11 +6,12 @@ import (
 )
 
 var credentialsCmd = &cobra.Command{
-	Use:          "credentials PROFILE",
-	Short:        "Use SSO creds as AWS process credentials",
-	Args:         cobra.ExactArgs(1),
-	SilenceUsage: true,
-	RunE:         credentialsrunner.RunE,
+	Use:                   "credentials PROFILE",
+	Short:                 "Use SSO creds as AWS process credentials",
+	Args:                  cobra.ExactArgs(1),
+	DisableFlagsInUseLine: true,
+	SilenceUsage:          true,
+	RunE:                  credentialsrunner.RunE,
 }
 
 func init() {

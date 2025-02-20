@@ -9,7 +9,6 @@ var doctorCmd = &cobra.Command{
 	Use:                   "doctor",
 	Short:                 "Checks for possible issues using this command",
 	Args:                  cobra.NoArgs,
-	DisableFlagParsing:    true,
 	DisableFlagsInUseLine: true,
 	RunE:                  doctorrunner.RunE,
 }

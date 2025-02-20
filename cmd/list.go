@@ -6,11 +6,12 @@ import (
 )
 
 var listCmd = &cobra.Command{
-	Use:          "list",
-	Short:        "Lists available SSO sessions and any info about them",
-	SilenceUsage: true,
-	Args:         cobra.MatchAll(cobra.NoArgs),
-	RunE:         listrunner.RunE,
+	Use:                   "list",
+	Short:                 "Lists available SSO sessions and any info about them",
+	SilenceUsage:          true,
+	DisableFlagsInUseLine: true,
+	Args:                  cobra.MatchAll(cobra.NoArgs),
+	RunE:                  listrunner.RunE,
 }
 
 func init() {
