@@ -51,7 +51,7 @@ brews:
   - repository:
       owner: webdestroya
       name: homebrew-tap
-      branch: bump-brew-awssso
+      branch: main
       token: "{{ .Env.HOMEBREW_SCOOP_GITHUB_TOKEN }}"
     directory: Formula
     homepage: https://github.com/webdestroya/aws-sso

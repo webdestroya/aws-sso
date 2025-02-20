@@ -7,7 +7,7 @@ import (
 
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
-	Use:                   "login profile [profile]...",
+	Use:                   "login PROFILE [PROFILE]...",
 	Short:                 "Login to the SSO session for the specified profile(s)",
 	SilenceUsage:          true,
 	DisableFlagsInUseLine: true,
