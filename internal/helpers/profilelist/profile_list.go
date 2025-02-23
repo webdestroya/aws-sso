@@ -54,6 +54,23 @@ func buildProfileList() []string {
 	return profiles
 }
 
+func ValidSingleProfileArg(cmd *cobra.Command, args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("no profile argument was provided")
+	}
+	if len(args) > 1 {
+		return fmt.Errorf("only one profile can be provided")
+	}
+
+	profiles := Profiles()
+	profile := args[0]
+	if !slices.Contains(profiles, profile) {
+		return fmt.Errorf("invalid argument: %s is not an SSO profile", profile)
+	}
+
+	return nil
+}
+
 func ValidProfileArgs(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		return nil
