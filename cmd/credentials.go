@@ -2,15 +2,17 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/webdestroya/aws-sso/internal/helpers/profilelist"
 	"github.com/webdestroya/aws-sso/internal/runners/credentialsrunner"
 )
 
 var credentialsCmd = &cobra.Command{
 	Use:                   "credentials PROFILE",
 	Short:                 "Use SSO creds as AWS process credentials",
-	Args:                  cobra.ExactArgs(1),
 	DisableFlagsInUseLine: true,
 	SilenceUsage:          true,
+	ValidArgsFunction:     profilelist.ProfileCompletions,
+	Args:                  cobra.MatchAll(cobra.ExactArgs(1), profilelist.ValidProfileArgs),
 	RunE:                  credentialsrunner.RunE,
 }
 

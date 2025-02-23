@@ -3,18 +3,16 @@ package listrunner
 import (
 	"fmt"
 	"maps"
-	"regexp"
 	"slices"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/webdestroya/aws-sso/internal/utils"
+	"github.com/webdestroya/aws-sso/internal/appconfig"
 	"gopkg.in/ini.v1"
 )
 
-var (
-	ssoSessionRegexp = regexp.MustCompile(`^\[sso-session ([-_a-zA-Z0-9]+)\]`)
-)
+// var (
+// 	ssoSessionRegexp = regexp.MustCompile(`^\[sso-session ([-_a-zA-Z0-9]+)\]`)
+// )
 
 const (
 	ssoSessionKey  = `sso_session`
@@ -95,7 +93,7 @@ func (b *ssoEntryBuilder) buildMap() ([]SSOEntry, error) {
 		Insensitive:             true,
 		AllowNestedValues:       true,
 		Loose:                   true,
-	}, config.DefaultSharedConfigFiles[0], utils.ToAnySlice(config.DefaultSharedConfigFiles[1:])...)
+	}, appconfig.GetAwsConfigPath())
 	if err != nil {
 		return nil, err
 	}

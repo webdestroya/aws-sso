@@ -4,11 +4,15 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/webdestroya/aws-sso/internal/appconfig"
 	"github.com/webdestroya/aws-sso/internal/utils"
 	"github.com/webdestroya/aws-sso/internal/utils/awsutils"
 )
 
 func RunE(cmd *cobra.Command, args []string) error {
+
+	cmd.Printf("Listing SSO configurations in %s:\n", appconfig.GetAwsConfigPath())
+	cmd.Println()
 
 	entries, err := GetSSOEntries()
 	if err != nil {
@@ -21,7 +25,11 @@ func RunE(cmd *cobra.Command, args []string) error {
 	}
 
 	for _, entry := range entries {
-		cmd.Printf("SSO: %s\n", entry.ID())
+		cmd.Printf(utils.HeaderStyle.Render("SSO: %s")+"\n", entry.ID())
+
+		if entry.IsLegacy() {
+			cmd.Println("  " + utils.WarningStyle.Render("* This profile is using legacy configuration style *"))
+		}
 
 		if len(entry.Profiles) > 0 {
 			cmd.Printf("  Used By: %s\n", strings.Join(entry.Profiles, ", "))

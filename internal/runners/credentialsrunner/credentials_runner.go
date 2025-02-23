@@ -13,6 +13,7 @@ import (
 	"github.com/webdestroya/aws-sso/internal/runners/loginrunner"
 	"github.com/webdestroya/aws-sso/internal/utils"
 	"github.com/webdestroya/aws-sso/internal/utils/awsutils"
+	"github.com/webdestroya/aws-sso/internal/utils/cmdutils"
 )
 
 func RunE(cmd *cobra.Command, args []string) error {
@@ -76,7 +77,7 @@ func GetAWSCredentials(ctx context.Context, out io.Writer, profile string) (*aws
 		return nil, err
 	}
 
-	ssoClient := sso.NewFromConfig(cfg)
+	ssoClient := cmdutils.NewSSOClient(cfg)
 	creds, err := ssoClient.GetRoleCredentials(ctx, &sso.GetRoleCredentialsInput{
 		AccessToken: &tokenInfo.AccessToken,
 		AccountId:   &sharedCfg.SSOAccountID,

@@ -13,10 +13,14 @@ project_name: awssso
 before:
   hooks:
     - go mod tidy
+    - ./scripts/completions.sh
 
 builds:
-  - env:
+  - id: awssso
+    binary: awssso
+    env:
       - CGO_ENABLED=0
+    mod_timestamp: "{{ .CommitTimestamp }}"
     goos:
       - darwin
       - linux
@@ -24,22 +28,21 @@ builds:
     goarch:
       - amd64
       - arm64
-    binary: awssso
-    id: awssso
+    tags:
+      - nodev
     flags:
       - -trimpath
     ldflags:
-      - "-s -w -X main.buildVersion={{.Version}} -X main.buildSha={{.Commit}}"
+      - "-s -w"
+      - -X main.buildVersion={{.Version}}
+      - -X main.buildSha={{.Commit}}
 
-# proxies from the go mod proxy before building
-# https://goreleaser.com/customization/gomod
 gomod:
   proxy: true
 
 archives:
   - formats:
       - tar.gz
-    # this name template makes the OS and Arch compatible with the results of `uname`.
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
@@ -72,6 +75,20 @@ brews:
     install: |
       bin.install "awssso"
 
+scoops:
+  - repository:
+      owner: webdestroya
+      name: scoop-bucket
+      token: "{{ .Env.HOMEBREW_SCOOP_GITHUB_TOKEN }}"
+      branch: main
+    url_template: "https://github.com/webdestroya/aws-sso/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    commit_author:
+      name: cloud87bot
+      email: 114977785+cloud87bot@users.noreply.github.com
+    homepage: https://github.com/webdestroya/aws-sso
+    description: "Writes credentials for AWS SSO'd accounts so that older applications can use them."
+    license: MIT
+
 nfpms:
   - id: nfpm-default
     package_name: awssso
@@ -93,27 +110,17 @@ universal_binaries:
     name_template: "{{ .ProjectName }}"
     replace: false
 
-
-# config the checksum filename
-# https://goreleaser.com/customization/checksum
 checksum:
   name_template: "checksums.txt"
 
-# create a source tarball
-# https://goreleaser.com/customization/source/
 source:
   enabled: true
 
-# creates SBOMs of all archives and the source tarball using syft
-# https://goreleaser.com/customization/sbom
 sboms:
   - artifacts: archive
   - id: source # Two different sbom configurations need two different IDs
     artifacts: source
 
-# signs the checksum file
-# all files (including the sboms) are included in the checksum, so we don't need to sign each one if we don't want to
-# https://goreleaser.com/customization/sign
 signs:
   - cmd: cosign
     certificate: "${artifact}.pem"
@@ -133,8 +140,6 @@ changelog:
       - "^docs:"
       - "^test:"
 
-# create a docker image
-# https://goreleaser.com/customization/docker
 dockers:
   - image_templates:
       - "ghcr.io/webdestroya/aws-sso:{{ .Tag }}"
@@ -147,8 +152,6 @@ dockers:
       - "--label=org.opencontainers.image.version={{.Version}}"
       - "--label=org.opencontainers.image.source={{.GitURL}}"
 
-# signs our docker image
-# https://goreleaser.com/customization/docker_sign
 docker_signs:
   - cmd: cosign
     artifacts: images
@@ -156,4 +159,4 @@ docker_signs:
     args:
       - "sign"
       - "${artifact}"
-      - "--yes" # needed on cosign 2.0.0+
+      - "--yes"

@@ -5,15 +5,17 @@ import (
 	"os"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/spf13/cobra"
+	"github.com/webdestroya/aws-sso/internal/appconfig"
 	"github.com/webdestroya/aws-sso/internal/runners/listrunner"
 	"github.com/webdestroya/aws-sso/internal/utils"
 )
 
 func RunE(cmd *cobra.Command, args []string) error {
 
-	awsCfgFile := config.DefaultSharedConfigFilename()
+	// TODO: check for aws cli?
+
+	awsCfgFile := appconfig.GetAwsConfigPath()
 
 	cmd.Printf("Checking %s file...", awsCfgFile)
 	if _, err := os.Stat(awsCfgFile); err == nil {

@@ -11,6 +11,7 @@ var listCmd = &cobra.Command{
 	SilenceUsage:          true,
 	DisableFlagsInUseLine: true,
 	Args:                  cobra.MatchAll(cobra.NoArgs),
+	ValidArgsFunction:     cobra.NoFileCompletions,
 	RunE:                  listrunner.RunE,
 }
 
