@@ -2,7 +2,7 @@ package cmdutils
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/webdestroya/aws-sso/internal/components/profilepicker"
+	"github.com/webdestroya/aws-sso/internal/helpers/profilepicker"
 )
 
 func GetProfilesFromArgsOrPrompt(cmd *cobra.Command, args []string) ([]string, error) {

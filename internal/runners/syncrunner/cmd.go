@@ -3,8 +3,8 @@ package syncrunner
 import (
 	"github.com/spf13/cobra"
 	"github.com/webdestroya/aws-sso/internal/appconfig"
-	"github.com/webdestroya/aws-sso/internal/components/profilepicker"
 	"github.com/webdestroya/aws-sso/internal/factory"
+	"github.com/webdestroya/aws-sso/internal/helpers/profilepicker"
 )
 
 type SyncOptions struct {

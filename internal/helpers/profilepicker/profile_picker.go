@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/spf13/cobra"
-	"github.com/webdestroya/aws-sso/internal/components/listpicker"
+	"github.com/webdestroya/aws-sso/internal/helpers/listpicker"
 )
 
 func PickSingleProfile(cmd *cobra.Command) (string, error) {
