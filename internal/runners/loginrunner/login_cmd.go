@@ -2,8 +2,8 @@ package loginrunner
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/webdestroya/aws-sso/internal/components/profilepicker"
 	"github.com/webdestroya/aws-sso/internal/factory"
-	"github.com/webdestroya/aws-sso/internal/helpers/profilelist"
 )
 
 type LoginOptions struct {
@@ -21,8 +21,8 @@ func NewLoginCmd(f *factory.Factory) *cobra.Command {
 		Use:               "login [PROFILE...]",
 		Short:             "Login to the SSO session for the specified profile(s)",
 		SilenceUsage:      true,
-		ValidArgsFunction: profilelist.ProfileCompletions,
-		Args:              profilelist.ValidProfileArgs,
+		ValidArgsFunction: profilepicker.ProfileCompletions,
+		Args:              profilepicker.ValidProfileArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return RunE(opts, cmd, args)
 		},

@@ -54,6 +54,8 @@ archives:
     format_overrides:
       - goos: windows
         formats: ["zip"]
+    files:
+      - completions/*
 
 brews:
   - repository:
@@ -72,8 +74,10 @@ brews:
       email: 114977785+cloud87bot@users.noreply.github.com
     test: |
       system "#{bin}/awssso --help"
-    install: |
-      bin.install "awssso"
+    extra_install: |
+      bash_completion.install "completions/awssso.bash" => "awssso"
+      fish_completion.install "completions/awssso.fish" => "awssso.fish"
+      zsh_completion.install "completions/awssso.zsh" => "_awssso"
 
 scoops:
   - repository:
@@ -104,6 +108,13 @@ nfpms:
       - deb
       - rpm
       - apk
+    contents:
+      - src: "./completions/awssso.bash"
+        dst: "/usr/share/bash-completion/completions/awssso"
+      - src: "./completions/awssso.fish"
+        dst: "/usr/share/fish/vendor_completions.d/awssso.fish"
+      - src: "./completions/awssso.zsh"
+        dst: "/usr/share/zsh/site-functions/_awssso"
 
 universal_binaries:
   - id: awssso

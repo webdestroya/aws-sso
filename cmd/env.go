@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/webdestroya/aws-sso/internal/components/profilepicker"
 	"github.com/webdestroya/aws-sso/internal/runners/envrunner"
 )
 
@@ -11,7 +12,7 @@ var envCmd = &cobra.Command{
 	Short:                 "Run a command with AWS access keys set in the environment",
 	DisableFlagsInUseLine: true,
 	FParseErrWhitelist:    cobra.FParseErrWhitelist{UnknownFlags: true},
-	Args:                  cobra.MinimumNArgs(2),
+	Args:                  cobra.MatchAll(profilepicker.ValidProfileFirstArg, cobra.MinimumNArgs(2)),
 	RunE:                  envrunner.RunE,
 }
 

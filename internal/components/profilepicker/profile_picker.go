@@ -5,11 +5,10 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/webdestroya/aws-sso/internal/components/listpicker"
-	"github.com/webdestroya/aws-sso/internal/helpers/profilelist"
 )
 
 func PickSingleProfile(cmd *cobra.Command) (string, error) {
-	profiles := profilelist.Profiles()
+	profiles := Profiles()
 	if len(profiles) == 0 {
 		return "", errors.New("No SSO profile configurations found")
 	}

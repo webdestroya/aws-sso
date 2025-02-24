@@ -5,7 +5,7 @@ test-release:
 
 .PHONY: test
 test:
-	@go test -v -timeout 30s -tags testmode  ./...
+	@go test -v -timeout 30s -tags nodev,testmode  ./...
 
 
 .PHONY: outdated

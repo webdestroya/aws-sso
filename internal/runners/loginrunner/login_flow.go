@@ -96,7 +96,13 @@ func DoLoginFlow(ctx context.Context, out io.Writer, session *config.SSOSession,
 	if !options.DisableBrowser {
 		go func() {
 			realUrl := utils.CoalesceString(*sdaResp.VerificationUriComplete, *sdaResp.VerificationUri, verifUrl)
-			_ = webbrowser.Open(realUrl)
+			if berr := webbrowser.Open(realUrl); berr != nil {
+				fmt.Fprintln(out)
+
+				fmt.Fprintln(out, utils.WarningStyle.Render(fmt.Sprintf("WARNING: Failed to open browser URL: %v", berr.Error())))
+				fmt.Fprintln(out, "You will need to visit the verification URL and enter the code manually.")
+				fmt.Fprintln(out)
+			}
 		}()
 	}
 

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/webdestroya/aws-sso/cmd"
 )
 
@@ -10,5 +12,6 @@ var (
 )
 
 func main() {
-	cmd.Execute(buildVersion, buildSha)
+	code := cmd.Execute(buildVersion, buildSha)
+	os.Exit(code)
 }

@@ -1,21 +1,26 @@
-package listrunner
+package profilepicker
 
-/*
 import (
 	"slices"
 	"strings"
+	"sync"
 
-	"github.com/spf13/cobra"
 	"github.com/webdestroya/aws-sso/internal/appconfig"
 	"gopkg.in/ini.v1"
 )
 
-// Deprecated
-// use profilelist.ProfileCompletions() instead
-func ProfileCompletions(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+const (
+	ssoSessionKey  = `sso_session`
+	ssoStartUrlKey = `sso_start_url`
+)
 
-	// TODO: use profilelist.Profiles
+var profOnce = sync.OnceValue(buildProfileList)
 
+func Profiles() []string {
+	return profOnce()
+}
+
+func buildProfileList() []string {
 	cfgFileIni, err := ini.LoadSources(ini.LoadOptions{
 		SkipUnrecognizableLines: true,
 		Insensitive:             true,
@@ -23,29 +28,20 @@ func ProfileCompletions(cmd *cobra.Command, args []string, toComplete string) ([
 		Loose:                   true,
 	}, appconfig.GetAwsConfigPath())
 	if err != nil {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
+		return []string{}
 	}
 
 	if len(cfgFileIni.Sections()) == 0 {
-		return []string{}, cobra.ShellCompDirectiveNoFileComp
+		return []string{}
 	}
 
 	profiles := make([]string, 0, 10)
-
-	toComplete = strings.ToLower(toComplete)
-
-	// fmt.Printf("COMPLETE: [%s]\n\n", toComplete)
 
 	for _, section := range cfgFileIni.Sections() {
 		sectName := section.Name()
 
 		if profName, has := strings.CutPrefix(sectName, "profile "); has {
 			if section.HasKey(ssoSessionKey) || section.HasKey(ssoStartUrlKey) {
-
-				if toComplete != "" && !strings.HasPrefix(profName, toComplete) {
-					continue
-				}
-
 				profiles = append(profiles, profName)
 			}
 		}
@@ -53,6 +49,5 @@ func ProfileCompletions(cmd *cobra.Command, args []string, toComplete string) ([
 
 	slices.Sort(profiles)
 
-	return profiles, cobra.ShellCompDirectiveNoFileComp
+	return profiles
 }
-*/

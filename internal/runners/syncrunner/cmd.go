@@ -5,7 +5,6 @@ import (
 	"github.com/webdestroya/aws-sso/internal/appconfig"
 	"github.com/webdestroya/aws-sso/internal/components/profilepicker"
 	"github.com/webdestroya/aws-sso/internal/factory"
-	"github.com/webdestroya/aws-sso/internal/helpers/profilelist"
 )
 
 type SyncOptions struct {
@@ -27,11 +26,12 @@ func NewCmdSync(f *factory.Factory) *cobra.Command {
 		Short:             "Sync AWS credentials. (This will overwrite the profile credentials!)",
 		Example:           "awssso sync mycompany-production",
 		SilenceUsage:      true,
-		ValidArgsFunction: profilelist.ProfileCompletions,
+		ValidArgsFunction: profilepicker.ProfileCompletions,
 		RunE: func(c *cobra.Command, args []string) error {
 			return RunE(opts, c, args)
 		},
 		PreRunE: profilepicker.EnsureProfileArgsPreRunE,
+		Args:    cobra.MatchAll(profilepicker.ValidProfileArgs),
 		// Args: cobra.MinimumNArgs(1),
 	}
 
