@@ -6,17 +6,13 @@ package loginrunner
 import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/spf13/cobra"
+	"github.com/webdestroya/aws-sso/internal/helpers/loginflow"
+	"github.com/webdestroya/aws-sso/internal/helpers/profilepicker"
 	"github.com/webdestroya/aws-sso/internal/utils/awsutils"
-	"github.com/webdestroya/aws-sso/internal/utils/cmdutils"
 )
 
 func RunE(opts *LoginOptions, cmd *cobra.Command, args []string) error {
-
-	// TODO: iterate all the profiles and make sure they are actually SSO things
-	// TODO: reduce to a unique list of start_urls
-	// login to each one
-
-	profiles, err := cmdutils.GetProfilesFromArgsOrPrompt(cmd, args)
+	profiles, err := profilepicker.GetProfilesFromArgsOrPrompt(cmd, args)
 	if err != nil {
 		return err
 	}
@@ -48,12 +44,12 @@ func runProfiles(opts *LoginOptions, cmd *cobra.Command, profiles []string) erro
 		cfgmap[cachePath] = ssoSession
 	}
 
-	lFlowOpts := []LoginFlowOption{
-		WithBrowser(!opts.NoBrowser),
+	lFlowOpts := []loginflow.LoginFlowOption{
+		loginflow.WithBrowser(!opts.NoBrowser),
 	}
 
 	for _, session := range cfgmap {
-		if _, err := DoLoginFlow(ctx, cmd.OutOrStdout(), session, lFlowOpts...); err != nil {
+		if _, err := loginflow.DoLoginFlow(ctx, cmd.OutOrStdout(), session, lFlowOpts...); err != nil {
 			return err
 		}
 	}

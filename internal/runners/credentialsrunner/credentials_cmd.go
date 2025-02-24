@@ -11,11 +11,10 @@ func NewCredentialsCmd(f *factory.Factory) *cobra.Command {
 		Use:                   "credentials PROFILE",
 		Short:                 "Use SSO creds as AWS process credentials",
 		DisableFlagsInUseLine: true,
+		SilenceUsage:          true,
 		ValidArgsFunction:     profilepicker.ProfileCompletions,
 		Args:                  cobra.MatchAll(profilepicker.ValidSingleProfileArg),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return RunE(cmd, args)
-		},
+		RunE:                  RunE,
 		// SilenceUsage:          true,
 	}
 

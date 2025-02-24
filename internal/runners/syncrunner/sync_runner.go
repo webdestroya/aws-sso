@@ -3,12 +3,13 @@ package syncrunner
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/webdestroya/aws-sso/internal/runners/credentialsrunner"
+	"github.com/webdestroya/aws-sso/internal/helpers/getcreds"
+	"github.com/webdestroya/aws-sso/internal/helpers/profilepicker"
 	"github.com/webdestroya/aws-sso/internal/utils"
 	"gopkg.in/ini.v1"
 )
@@ -21,8 +22,9 @@ const (
 
 func RunE(opts *SyncOptions, cmd *cobra.Command, args []string) error {
 
-	if len(args) == 0 {
-		return errors.New("No profiles were provided to sync")
+	profiles, err := profilepicker.GetProfilesFromArgsOrPrompt(cmd, args)
+	if err != nil {
+		return err
 	}
 
 	iniOpts := ini.LoadOptions{
@@ -37,8 +39,8 @@ func RunE(opts *SyncOptions, cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	for _, profile := range args {
-		if err := syncCredentials(opts, cmd.Context(), cmd.OutOrStdout(), credsIni, profile); err != nil {
+	for _, profile := range profiles {
+		if err := opts.syncCredentials(cmd.Context(), cmd.OutOrStdout(), credsIni, profile); err != nil {
 			return err
 		}
 	}
@@ -53,7 +55,7 @@ func RunE(opts *SyncOptions, cmd *cobra.Command, args []string) error {
 	return utils.AtomicWriteFile(credsFile, buf.Bytes(), 0600)
 }
 
-func syncCredentials(opts *SyncOptions, ctx context.Context, out io.Writer, credsIni *ini.File, profile string) error {
+func (opts *SyncOptions) syncCredentials(ctx context.Context, out io.Writer, credsIni *ini.File, profile string) error {
 
 	if credsIni.HasSection(profile) {
 		sect, err := credsIni.GetSection(profile)
@@ -70,7 +72,7 @@ func syncCredentials(opts *SyncOptions, ctx context.Context, out io.Writer, cred
 
 	}
 
-	creds, err := credentialsrunner.GetAWSCredentials(ctx, out, profile)
+	creds, err := getcreds.GetAWSCredentials(ctx, out, profile)
 	if err != nil {
 		return err
 	}
@@ -82,7 +84,11 @@ func syncCredentials(opts *SyncOptions, ctx context.Context, out io.Writer, cred
 		return err
 	}
 
-	newSect.NewKey(keyAccessKey, creds.AccessKeyID)
+	ak, _ := newSect.NewKey(keyAccessKey, creds.AccessKeyID)
+	if creds.CanExpire {
+		// time.Parse()
+		ak.Comment = fmt.Sprintf("Expires: %s", creds.Expires.Format(time.RFC3339))
+	}
 	newSect.NewKey(keySecretKey, creds.SecretAccessKey)
 	newSect.NewKey(keySessionToken, creds.SessionToken)
 

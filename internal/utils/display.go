@@ -9,7 +9,7 @@ var (
 	HeaderStyle  = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.ANSIColor(0))
 )
 
-var (
-	ErrorStatus   = ErrorStyle.Render("ERROR")
-	SuccessStatus = SuccessStyle.Render("SUCCESS")
-)
+// var (
+// 	// ErrorStatus   = ErrorStyle.Render("ERROR")
+// 	// SuccessStatus = SuccessStyle.Render("SUCCESS")
+// )

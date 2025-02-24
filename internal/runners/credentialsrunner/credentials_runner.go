@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/webdestroya/aws-sso/internal/helpers/getcreds"
 	"github.com/webdestroya/aws-sso/internal/utils"
 )
 
@@ -11,7 +12,7 @@ func RunE(cmd *cobra.Command, args []string) error {
 
 	profile := args[0]
 
-	credentials, err := GetAWSCredentials(cmd.Context(), cmd.OutOrStdout(), profile)
+	credentials, err := getcreds.GetAWSCredentials(cmd.Context(), cmd.OutOrStdout(), profile, getcreds.WithLoginDisabled())
 	if err != nil {
 		return err
 	}

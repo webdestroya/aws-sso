@@ -1,6 +1,7 @@
 package syncrunner
 
 import (
+	"github.com/MakeNowJust/heredoc"
 	"github.com/spf13/cobra"
 	"github.com/webdestroya/aws-sso/internal/appconfig"
 	"github.com/webdestroya/aws-sso/internal/factory"
@@ -22,16 +23,24 @@ func NewCmdSync(f *factory.Factory) *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:               "sync [PROFILE...]",
-		Short:             "Sync AWS credentials. (This will overwrite the profile credentials!)",
-		Example:           "awssso sync mycompany-production",
-		SilenceUsage:      true,
+		Use:   "sync [PROFILE...]",
+		Short: "Sync AWS credentials. (This will overwrite the profile credentials!)",
+		// Example:           "awssso sync mycompany-production",
+		Example: heredoc.Doc(`
+
+			Sync credentials for a specific profile:
+			  $ awssso sync mycompany-production
+			
+			Sync credentials for multiple profiles all at once:
+			  $ awssso sync mycompany-production mycompany-staging
+
+			If you do not provide any profile arguments, you will be prompted to choose:
+			  $ awssso sync`),
 		ValidArgsFunction: profilepicker.ProfileCompletions,
 		RunE: func(c *cobra.Command, args []string) error {
 			return RunE(opts, c, args)
 		},
-		PreRunE: profilepicker.EnsureProfileArgsPreRunE,
-		Args:    cobra.MatchAll(profilepicker.ValidProfileArgs),
+		Args: cobra.MatchAll(profilepicker.ValidProfileArgs),
 		// Args: cobra.MinimumNArgs(1),
 	}
 

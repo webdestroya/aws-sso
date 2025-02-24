@@ -12,6 +12,7 @@ var (
 	ErrNoProfileProvidedError = errors.New("no profile argument was provided")
 )
 
+// ensures that there is exactly 1 valid profile
 func ValidSingleProfileArg(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		return ErrNoProfileProvidedError
@@ -34,6 +35,8 @@ func ValidSingleProfileArg(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+// for any args, ensure they are all valid profiles
+// does not require args
 func ValidProfileArgs(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		return nil
@@ -49,6 +52,7 @@ func ValidProfileArgs(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+// ensures that the first arg is a valid profile
 func ValidProfileFirstArg(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		return ErrNoProfileProvidedError

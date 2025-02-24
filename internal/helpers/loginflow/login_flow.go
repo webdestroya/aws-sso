@@ -1,4 +1,4 @@
-package loginrunner
+package loginflow
 
 import (
 	"context"
@@ -88,6 +88,7 @@ func DoLoginFlow(ctx context.Context, out io.Writer, session *config.SSOSession,
 	fmt.Fprintln(out)
 	fmt.Fprintln(out, "Then enter the code:")
 	fmt.Fprintln(out)
+	// https://github.com/common-nighthawk/go-figure
 	fmt.Fprintf(out, "  %s\n", *sdaResp.UserCode)
 	fmt.Fprintln(out)
 	// fmt.Fprintf(out, "Successully logged into Start URL: %s\n", session.SSOStartURL)
@@ -172,3 +173,4 @@ func DoLoginFlow(ctx context.Context, out io.Writer, session *config.SSOSession,
 
 // https://github.com/boto/botocore/blob/v2/botocore/utils.py
 // https://github.com/mrtc0/aws-sso-go/blob/master/main.go
+// https://github.com/boto/botocore/blob/v2/botocore/credentials.py#L2008

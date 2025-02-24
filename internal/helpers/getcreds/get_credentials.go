@@ -1,7 +1,8 @@
-package credentialsrunner
+package getcreds
 
 import (
 	"context"
+	"errors"
 	"io"
 	"time"
 
@@ -9,13 +10,24 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials/ssocreds"
 	"github.com/aws/aws-sdk-go-v2/service/sso"
-	"github.com/webdestroya/aws-sso/internal/runners/loginrunner"
+	"github.com/webdestroya/aws-sso/internal/helpers/loginflow"
 	"github.com/webdestroya/aws-sso/internal/utils/awsutils"
 	"github.com/webdestroya/aws-sso/internal/utils/cmdutils"
 )
 
+var (
+	ErrTokenInvalidError = errors.New("token was not found or was expired. You need to login to this profile first.")
+)
+
 // func GetAWSCredentials(ctx context.Context, out io.Writer, profile string) (*ssoTypes.RoleCredentials, error) {
-func GetAWSCredentials(ctx context.Context, out io.Writer, profile string, optFns ...loginrunner.LoginFlowOption) (*aws.Credentials, error) {
+func GetAWSCredentials(ctx context.Context, out io.Writer, profile string, optFns ...GetCredOption) (*aws.Credentials, error) {
+
+	opts := &getCredOptions{
+		LoginFlowOptions: make([]loginflow.LoginFlowOption, 0),
+	}
+	for _, optFn := range optFns {
+		optFn(opts)
+	}
 
 	sharedCfg, err := awsutils.LoadSharedConfigProfile(ctx, profile)
 	if err != nil {
@@ -35,9 +47,13 @@ func GetAWSCredentials(ctx context.Context, out io.Writer, profile string, optFn
 	tokenInfo, err := awsutils.ReadTokenFile(tokenFile)
 	if err != nil || tokenInfo == nil || tokenInfo.Expired() {
 
+		if opts.DisableLogin {
+			return nil, ErrTokenInvalidError
+		}
+
 		// problem with getting token file, so do the login flow
 
-		tokenInfo, err = loginrunner.DoLoginFlow(ctx, out, ssoSession, optFns...)
+		tokenInfo, err = loginflow.DoLoginFlow(ctx, out, ssoSession, opts.LoginFlowOptions...)
 		if err != nil {
 			return nil, err
 		}

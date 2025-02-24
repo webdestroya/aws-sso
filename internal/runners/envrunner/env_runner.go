@@ -7,12 +7,8 @@ import (
 	"os/exec"
 
 	"github.com/spf13/cobra"
-	"github.com/webdestroya/aws-sso/internal/runners/credentialsrunner"
+	"github.com/webdestroya/aws-sso/internal/helpers/getcreds"
 )
-
-func Run(cmd *cobra.Command, args []string) {
-	_ = RunE(cmd, args)
-}
 
 func RunE(cmd *cobra.Command, args []string) error {
 
@@ -32,7 +28,7 @@ func RunE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	credinfo, err := credentialsrunner.GetAWSCredentials(cmd.Context(), cmd.OutOrStdout(), profile)
+	credinfo, err := getcreds.GetAWSCredentials(cmd.Context(), cmd.OutOrStdout(), profile)
 	if err != nil {
 		return err
 	}
@@ -42,6 +38,7 @@ func RunE(cmd *cobra.Command, args []string) error {
 	env = append(env, fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", credinfo.AccessKeyID))
 	env = append(env, fmt.Sprintf("AWS_SECRET_ACCESS_KEY=%s", credinfo.SecretAccessKey))
 	env = append(env, fmt.Sprintf("AWS_SESSION_TOKEN=%s", credinfo.SessionToken))
+	// AWS_CREDENTIAL_EXPIRATION
 	// env = append(env, fmt.Sprintf("AWS_REGION=%s", credinfo.Region))
 
 	innerCmd := exec.CommandContext(cmd.Context(), binPath, args...)

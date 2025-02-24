@@ -15,7 +15,8 @@ func PickSingleProfile(cmd *cobra.Command) (string, error) {
 	return listpicker.NewSingleChoice("Please select an AWS config profile:", profiles)
 }
 
-func EnsureProfileArgsPreRunE(cmd *cobra.Command, args []string) error {
+func GetProfilesFromArgsOrPrompt(cmd *cobra.Command, args []string) ([]string, error) {
+
 	if len(args) == 0 {
 		rep, err := PickSingleProfile(cmd)
 		// cmd.Printf("RESULT: [%v] [err=%T/%v/]\n", rep, err, err)
@@ -25,10 +26,8 @@ func EnsureProfileArgsPreRunE(cmd *cobra.Command, args []string) error {
 		// 		return nil, nil
 		// 	}
 		// }
-
-		cmd.SetArgs([]string{rep})
-
-		return err
+		return []string{rep}, err
 	}
-	return nil
+
+	return args, nil
 }

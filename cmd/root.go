@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/webdestroya/aws-sso/internal/factory"
 	"github.com/webdestroya/aws-sso/internal/runners/credentialsrunner"
+	"github.com/webdestroya/aws-sso/internal/runners/listrunner"
 	"github.com/webdestroya/aws-sso/internal/runners/loginrunner"
 	"github.com/webdestroya/aws-sso/internal/runners/syncrunner"
 	"github.com/webdestroya/aws-sso/internal/utils"
@@ -68,5 +69,6 @@ func init() {
 
 	rootCmd.AddCommand(loginrunner.NewLoginCmd(f))
 	rootCmd.AddCommand(syncrunner.NewCmdSync(f))
+	rootCmd.AddCommand(listrunner.NewListCmd(f))
 	rootCmd.AddCommand(credentialsrunner.NewCredentialsCmd(f))
 }
