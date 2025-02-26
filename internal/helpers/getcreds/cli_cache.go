@@ -3,10 +3,12 @@ package getcreds
 import (
 	"crypto/sha1"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -14,6 +16,18 @@ import (
 	"github.com/webdestroya/aws-sso/internal/utils"
 	"github.com/webdestroya/aws-sso/internal/utils/awsutils"
 )
+
+type cliCacheCredentials struct {
+	AccessKeyId     string `json:",omitempty"`
+	SecretAccessKey string `json:",omitempty"`
+	SessionToken    string `json:",omitempty"`
+	Expiration      string `json:",omitempty"`
+}
+
+type cliCacheEntry struct {
+	ProviderType string              `json:",omitempty"`
+	Credentials  cliCacheCredentials `json:",omitempty"`
+}
 
 func CLICacheKey(cfg config.SharedConfig, session *config.SSOSession) string {
 
@@ -57,6 +71,22 @@ func CLICacheFile(cfg config.SharedConfig, session *config.SSOSession) string {
 	)
 }
 
-func writeCliCache(cfg config.SharedConfig, session *config.SSOSession, creds *aws.Credentials) {
-	// TODO: write the cache file so the cli can use it
+func writeCliCache(cfg config.SharedConfig, session *config.SSOSession, creds *aws.Credentials) error {
+	obj := cliCacheEntry{
+		ProviderType: "sso",
+		Credentials: cliCacheCredentials{
+			AccessKeyId:     creds.AccessKeyID,
+			SecretAccessKey: creds.SecretAccessKey,
+			SessionToken:    creds.SessionToken,
+			Expiration:      creds.Expires.UTC().Format(time.RFC3339),
+		},
+	}
+
+	jsonOut, err := json.Marshal(obj)
+	if err != nil {
+		return err
+	}
+
+	return utils.WriteFile(CLICacheFile(cfg, session), jsonOut, 0600)
+
 }

@@ -4,6 +4,7 @@ import "github.com/webdestroya/aws-sso/internal/helpers/loginflow"
 
 type getCredOptions struct {
 	DisableLogin     bool
+	CliCache         bool
 	LoginFlowOptions []loginflow.LoginFlowOption
 }
 
@@ -18,5 +19,11 @@ func WithLoginFlowOptions(lfo ...loginflow.LoginFlowOption) GetCredOption {
 func WithLoginDisabled() GetCredOption {
 	return func(o *getCredOptions) {
 		o.DisableLogin = true
+	}
+}
+
+func WithCliCache(v bool) GetCredOption {
+	return func(o *getCredOptions) {
+		o.CliCache = v
 	}
 }

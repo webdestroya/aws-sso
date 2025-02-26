@@ -75,7 +75,7 @@ func GetAWSCredentials(ctx context.Context, out io.Writer, profile string, optFn
 	}
 
 	roleCreds := creds.RoleCredentials
-	return &aws.Credentials{
+	result := &aws.Credentials{
 		AccessKeyID:     *roleCreds.AccessKeyId,
 		SecretAccessKey: *roleCreds.SecretAccessKey,
 		SessionToken:    *roleCreds.SessionToken,
@@ -83,5 +83,13 @@ func GetAWSCredentials(ctx context.Context, out io.Writer, profile string, optFn
 		CanExpire:       true,
 		Expires:         time.Unix(0, roleCreds.Expiration*int64(time.Millisecond)).UTC(),
 		AccountID:       sharedCfg.SSOAccountID,
-	}, nil
+	}
+
+	if opts.CliCache {
+		if err := writeCliCache(sharedCfg, ssoSession, result); err != nil {
+			return result, err
+		}
+	}
+
+	return result, nil
 }

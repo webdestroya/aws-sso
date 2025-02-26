@@ -62,7 +62,7 @@ func (pl *profileLister) processProfile(profile string) error {
 	return nil
 }
 
-func oldRunE(cmd *cobra.Command, args []string) error {
+func oldRunE(cmd *cobra.Command, _ []string) error {
 
 	cmd.Printf("Listing SSO configurations in %s:\n", appconfig.GetAwsConfigPath())
 	cmd.Println()

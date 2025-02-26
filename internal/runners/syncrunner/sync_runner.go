@@ -3,6 +3,7 @@ package syncrunner
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -22,9 +23,23 @@ const (
 
 func RunE(opts *SyncOptions, cmd *cobra.Command, args []string) error {
 
-	profiles, err := profilepicker.GetProfilesFromArgsOrPrompt(cmd, args)
-	if err != nil {
-		return err
+	var profiles []string
+
+	if opts.AllProfiles {
+		if len(args) > 0 {
+			return errors.New("You requested --all profiles, but then provided a list. You can't do both.")
+		}
+		profiles = profilepicker.Profiles()
+	} else {
+		profs, err := profilepicker.GetProfilesFromArgsOrPrompt(cmd, args)
+		if err != nil {
+			return err
+		}
+		profiles = profs
+	}
+
+	if len(profiles) == 0 {
+		return errors.New("No profiles provided")
 	}
 
 	iniOpts := ini.LoadOptions{
@@ -41,7 +56,10 @@ func RunE(opts *SyncOptions, cmd *cobra.Command, args []string) error {
 
 	for _, profile := range profiles {
 		if err := opts.syncCredentials(cmd.Context(), cmd.OutOrStdout(), credsIni, profile); err != nil {
-			return err
+			cmd.PrintErrln(utils.ErrorStyle.Render("Failed to sync credentials for profile:", profile))
+			if !opts.IgnoreErrors {
+				return err
+			}
 		}
 	}
 
@@ -72,7 +90,7 @@ func (opts *SyncOptions) syncCredentials(ctx context.Context, out io.Writer, cre
 
 	}
 
-	creds, err := getcreds.GetAWSCredentials(ctx, out, profile)
+	creds, err := getcreds.GetAWSCredentials(ctx, out, profile, getcreds.WithCliCache(!opts.NoCliCache))
 	if err != nil {
 		return err
 	}

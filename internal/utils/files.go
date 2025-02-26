@@ -9,7 +9,7 @@ import (
 
 func AtomicWriteFile(filename string, data []byte, fileMode os.FileMode) error {
 	tmpFilename := filename + ".tmp-" + strconv.FormatInt(time.Now().UnixNano(), 10)
-	if err := writeFile(tmpFilename, data, fileMode); err != nil {
+	if err := WriteFile(tmpFilename, data, fileMode); err != nil {
 		return err
 	}
 
@@ -19,7 +19,7 @@ func AtomicWriteFile(filename string, data []byte, fileMode os.FileMode) error {
 	return nil
 }
 
-func writeFile(filename string, data []byte, fileMode os.FileMode) (err error) {
+func WriteFile(filename string, data []byte, fileMode os.FileMode) (err error) {
 	var f *os.File
 	f, err = os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_RDWR, fileMode)
 	if err != nil {
