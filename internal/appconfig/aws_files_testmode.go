@@ -2,6 +2,6 @@
 
 package appconfig
 
-func SetAwsCredentialPath(v string) string {
-	return testModeCredentialsPath = v
+func SetAwsCredentialPath(v string) {
+	testModeCredentialsPath = v
 }
