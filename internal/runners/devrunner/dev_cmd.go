@@ -1,3 +1,5 @@
+//go:build !nodev
+
 package devrunner
 
 import (
