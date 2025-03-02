@@ -22,7 +22,7 @@ func ExtractSSOInfo(cfg config.SharedConfig) (*config.SSOSession, error) {
 
 	if len(cfg.SSOStartURL) != 0 && len(cfg.SSORoleName) != 0 && len(cfg.SSOAccountID) != 0 {
 		return &config.SSOSession{
-			Name:        "", // utils.CoalesceString(cfg.Profile, cfg.SourceProfileName, ""),
+			Name:        "",
 			SSORegion:   utils.CoalesceString(cfg.SSORegion, cfg.Region, "us-east-1"),
 			SSOStartURL: cfg.SSOStartURL,
 		}, nil

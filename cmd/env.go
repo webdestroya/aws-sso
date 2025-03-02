@@ -1,21 +1,7 @@
 package cmd
 
-import (
-	"github.com/spf13/cobra"
-	"github.com/webdestroya/aws-sso/internal/runners/envrunner"
-)
-
-var envCmd = &cobra.Command{
-	Use:                   "env PROFILE -- command [command-args...]",
-	Aliases:               []string{"run"},
-	Short:                 "Run a command with AWS access keys set in the environment",
-	SilenceUsage:          false,
-	DisableFlagsInUseLine: true,
-	FParseErrWhitelist:    cobra.FParseErrWhitelist{UnknownFlags: true},
-	Args:                  cobra.MinimumNArgs(2),
-	RunE:                  envrunner.RunE,
-}
+import "github.com/webdestroya/aws-sso/internal/runners/envrunner"
 
 func init() {
-	rootCmd.AddCommand(envCmd)
+	rootCmd.AddCommand(envrunner.NewEnvCmd(cmdFactory))
 }

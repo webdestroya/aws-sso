@@ -1,29 +1,7 @@
 package cmd
 
-import (
-	"github.com/spf13/cobra"
-	"github.com/webdestroya/aws-sso/internal/runners/credentialsrunner"
-)
-
-var credentialsCmd = &cobra.Command{
-	Use:                   "credentials PROFILE",
-	Short:                 "Use SSO creds as AWS process credentials",
-	Args:                  cobra.ExactArgs(1),
-	DisableFlagsInUseLine: true,
-	SilenceUsage:          true,
-	RunE:                  credentialsrunner.RunE,
-}
+import "github.com/webdestroya/aws-sso/internal/runners/credentialsrunner"
 
 func init() {
-	rootCmd.AddCommand(credentialsCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// credentialsCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// credentialsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.AddCommand(credentialsrunner.NewCredentialsCmd(cmdFactory))
 }

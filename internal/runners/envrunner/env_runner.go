@@ -5,23 +5,22 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/webdestroya/aws-sso/internal/runners/credentialsrunner"
+	"github.com/webdestroya/aws-sso/internal/helpers/getcreds"
 )
 
-func Run(cmd *cobra.Command, args []string) {
-	_ = RunE(cmd, args)
-}
+// some code for the runner taken from dagger
 
-func RunE(cmd *cobra.Command, args []string) error {
+func (opts *envOptions) runE(cmd *cobra.Command, args []string) error {
 
-	profile, args := args[0], args[1:]
+	errOut := cmd.ErrOrStderr()
 
-	command, args := args[0], args[1:]
+	profile, command, args := args[0], args[1], args[2:]
 
 	if command == "--" {
-		if len(args) < 2 {
+		if len(args) == 0 {
 			return errors.New("No command was provided")
 		}
 		command, args = args[0], args[1:]
@@ -32,7 +31,14 @@ func RunE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	credinfo, err := credentialsrunner.GetAWSCredentials(cmd.Context(), cmd.OutOrStdout(), profile)
+	if !opts.Quiet {
+		fmt.Fprintln(errOut, "Profile:", profile)
+		fmt.Fprintln(errOut, "Command: (unquoted)")
+		fmt.Fprintln(errOut, binPath, strings.Join(args, " "))
+		fmt.Fprintln(errOut)
+	}
+
+	credinfo, err := getcreds.GetAWSCredentials(cmd.Context(), cmd.ErrOrStderr(), profile)
 	if err != nil {
 		return err
 	}
@@ -40,31 +46,42 @@ func RunE(cmd *cobra.Command, args []string) error {
 	env := os.Environ()
 
 	env = append(env, fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", credinfo.AccessKeyID))
+	env = append(env, fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", credinfo.AccessKeyID))
 	env = append(env, fmt.Sprintf("AWS_SECRET_ACCESS_KEY=%s", credinfo.SecretAccessKey))
 	env = append(env, fmt.Sprintf("AWS_SESSION_TOKEN=%s", credinfo.SessionToken))
+	// AWS_CREDENTIAL_EXPIRATION
 	// env = append(env, fmt.Sprintf("AWS_REGION=%s", credinfo.Region))
 
-	innerCmd := exec.CommandContext(cmd.Context(), binPath, args...)
-	innerCmd.Stdin = os.Stdin
-	innerCmd.Stdout = os.Stdout
-	innerCmd.Stderr = os.Stderr
-	innerCmd.Env = env
-	innerCmd.Start()
-	done := make(chan struct{})
+	subCmd := exec.CommandContext(cmd.Context(), binPath, args...)
+	subCmd.Stdin = os.Stdin
+	subCmd.Stdout = os.Stdout
+	subCmd.Stderr = os.Stderr
+	subCmd.Env = env
 
-	go func() {
-		err := innerCmd.Wait()
-		_ = err
-		// status := innerCmd.ProcessState.Sys().(syscall.WaitStatus)
-		// exitStatus := status.ExitStatus()
-		// signaled := status.Signaled()
-		// signal := status.Signal()
-		close(done)
-	}()
-	// innerCmd.Process.Kill()
-	<-done
+	// NB: go run lets its child process roam free when you interrupt it, so
+	// make sure they all get signalled. (you don't normally notice this in a
+	// shell because Ctrl+C sends to the process group.)
+	ensureChildProcessesAreKilled(opts, subCmd)
 
-	return nil
+	return subCmd.Run()
+
+	// subCmd.Start()
+
+	// done := make(chan struct{})
+
+	// go func() {
+	// 	err := subCmd.Wait()
+	// 	_ = err
+	// 	// status := subCmd.ProcessState.Sys().(syscall.WaitStatus)
+	// 	// exitStatus := status.ExitStatus()
+	// 	// signaled := status.Signaled()
+	// 	// signal := status.Signal()
+	// 	close(done)
+	// }()
+	// // subCmd.Process.Kill()
+	// <-done
+
+	// return nil
 
 	// return syscall.Exec(binPath, args, env)
 }
