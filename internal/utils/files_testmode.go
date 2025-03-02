@@ -11,3 +11,7 @@ func AtomicWriteFile(filename string, data []byte, fileMode os.FileMode) error {
 func WriteFile(filename string, data []byte, fileMode os.FileMode) error {
 	return nil
 }
+
+func EnsureDir(dirName string) error {
+	return nil
+}
