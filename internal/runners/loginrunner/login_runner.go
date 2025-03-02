@@ -49,7 +49,7 @@ func runProfiles(opts *LoginOptions, cmd *cobra.Command, profiles []string) erro
 	}
 
 	for _, session := range cfgmap {
-		if _, err := loginflow.DoLoginFlow(ctx, cmd.OutOrStdout(), session, lFlowOpts...); err != nil {
+		if _, err := loginflow.DoLoginFlow(ctx, cmd.ErrOrStderr(), session, lFlowOpts...); err != nil {
 			return err
 		}
 	}

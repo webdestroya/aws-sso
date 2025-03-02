@@ -1,16 +1,15 @@
 package profilepicker
 
 import (
-	"errors"
-
 	"github.com/spf13/cobra"
 	"github.com/webdestroya/aws-sso/internal/helpers/listpicker"
+	"github.com/webdestroya/aws-sso/internal/utils/cmdutils"
 )
 
 func PickSingleProfile(cmd *cobra.Command) (string, error) {
 	profiles := Profiles()
 	if len(profiles) == 0 {
-		return "", errors.New("No SSO profile configurations found")
+		return "", cmdutils.NewNonUsageError("No SSO profile configurations found")
 	}
 	return listpicker.NewSingleChoice("Please select an AWS config profile:", profiles)
 }

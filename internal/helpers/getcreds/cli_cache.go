@@ -4,7 +4,9 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -12,6 +14,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials/ssocreds"
 	"github.com/webdestroya/aws-sso/internal/appconfig"
 	"github.com/webdestroya/aws-sso/internal/utils"
 	"github.com/webdestroya/aws-sso/internal/utils/awsutils"
@@ -28,6 +31,10 @@ type cliCacheEntry struct {
 	ProviderType string              `json:",omitempty"`
 	Credentials  cliCacheCredentials `json:",omitempty"`
 }
+
+var (
+	ErrInvalidCacheEntryError = errors.New("invalid cli cache entry")
+)
 
 func CLICacheKey(cfg config.SharedConfig, session *config.SSOSession) string {
 
@@ -88,5 +95,41 @@ func writeCliCache(cfg config.SharedConfig, session *config.SSOSession, creds *a
 	}
 
 	return utils.WriteFile(CLICacheFile(cfg, session), jsonOut, 0600)
+
+}
+
+func ReadCliCache(cfg config.SharedConfig, session *config.SSOSession) (*aws.Credentials, error) {
+	obj := cliCacheEntry{}
+
+	cacheFile := CLICacheFile(cfg, session)
+
+	data, err := os.ReadFile(cacheFile)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(data, &obj); err != nil {
+		return nil, err
+	}
+
+	if obj.ProviderType != "sso" || obj.Credentials.SecretAccessKey == "" || obj.Credentials.AccessKeyId == "" {
+		return nil, ErrInvalidCacheEntryError
+	}
+
+	expires, err := time.Parse(time.RFC3339, obj.Credentials.Expiration)
+	if err != nil {
+		return nil, err
+	}
+
+	creds := &aws.Credentials{
+		AccessKeyID:     obj.Credentials.AccessKeyId,
+		SecretAccessKey: obj.Credentials.SecretAccessKey,
+		SessionToken:    obj.Credentials.SessionToken,
+		Source:          ssocreds.ProviderName,
+		CanExpire:       true,
+		Expires:         expires,
+		AccountID:       cfg.SSOAccountID,
+	}
+	return creds, nil
 
 }

@@ -2,7 +2,7 @@ package getcreds
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"io"
 	"time"
 
@@ -11,12 +11,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials/ssocreds"
 	"github.com/aws/aws-sdk-go-v2/service/sso"
 	"github.com/webdestroya/aws-sso/internal/helpers/loginflow"
+	"github.com/webdestroya/aws-sso/internal/utils"
 	"github.com/webdestroya/aws-sso/internal/utils/awsutils"
 	"github.com/webdestroya/aws-sso/internal/utils/cmdutils"
 )
 
 var (
-	ErrTokenInvalidError = errors.New("token was not found or was expired. You need to login to this profile first.")
+	ErrTokenInvalidError = cmdutils.NewNonUsageError("token was not found or was expired. You need to login to this profile first.")
 )
 
 // func GetAWSCredentials(ctx context.Context, out io.Writer, profile string) (*ssoTypes.RoleCredentials, error) {
@@ -87,7 +88,7 @@ func GetAWSCredentials(ctx context.Context, out io.Writer, profile string, optFn
 
 	if opts.CliCache {
 		if err := writeCliCache(sharedCfg, ssoSession, result); err != nil {
-			return result, err
+			fmt.Fprintln(out, utils.WarningStyle.Render("Warning: Failed to write CLI cache file:", err.Error()))
 		}
 	}
 

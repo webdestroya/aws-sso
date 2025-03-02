@@ -26,7 +26,6 @@ func NewLoginCmd(f *factory.Factory) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return RunE(opts, cmd, args)
 		},
-		// DisableFlagsInUseLine: true,
 	}
 
 	cmd.Flags().BoolVar(&opts.NoBrowser, "no-browser", false, "Disable opening the browser automatically")

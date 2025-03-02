@@ -8,8 +8,3 @@ var (
 	SuccessStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.ANSIColor(40))
 	HeaderStyle  = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.ANSIColor(0))
 )
-
-// var (
-// 	// ErrorStatus   = ErrorStyle.Render("ERROR")
-// 	// SuccessStatus = SuccessStyle.Render("SUCCESS")
-// )

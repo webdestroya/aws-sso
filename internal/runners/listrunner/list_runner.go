@@ -1,25 +1,34 @@
 package listrunner
 
 import (
+	"fmt"
+	"io"
 	"strings"
+	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/spf13/cobra"
 	"github.com/webdestroya/aws-sso/internal/appconfig"
+	"github.com/webdestroya/aws-sso/internal/helpers/getcreds"
 	"github.com/webdestroya/aws-sso/internal/helpers/profilepicker"
 	"github.com/webdestroya/aws-sso/internal/utils"
 	"github.com/webdestroya/aws-sso/internal/utils/awsutils"
 )
 
-func RunE(cmd *cobra.Command, args []string) error {
-
-	return (&profileLister{cmd: cmd}).run()
-}
-
 type profileLister struct {
-	cmd *cobra.Command
+	cmd  *cobra.Command
+	opts *listOptions
 }
 
 func (pl *profileLister) run() error {
+
+	if pl.opts.ShowSessions {
+		pl.listSessions()
+
+		pl.cmd.Println(strings.Repeat("-", 80))
+		pl.cmd.Println()
+	}
+
 	pl.cmd.Printf("Listing SSO profiles in %s:\n", appconfig.GetAwsConfigPath())
 	pl.cmd.Println()
 
@@ -42,7 +51,10 @@ func (pl *profileLister) run() error {
 }
 
 func (pl *profileLister) processProfile(profile string) error {
-	pl.cmd.Printf(utils.HeaderStyle.Render("Profile: %s")+"\n", profile)
+
+	out := pl.cmd.OutOrStdout()
+
+	fmt.Fprintln(out, utils.HeaderStyle.Render("Profile:", profile))
 
 	cfg, err := awsutils.LoadSharedConfigProfile(pl.cmd.Context(), profile)
 	if err != nil {
@@ -55,17 +67,42 @@ func (pl *profileLister) processProfile(profile string) error {
 		return err
 	}
 
-	pl.cmd.Printf("Region:  %s\n", ssoSession.SSORegion)
-	pl.cmd.Printf("Account: %s\n", cfg.SSOAccountID)
-	pl.cmd.Printf("Role:    %s\n", cfg.SSORoleName)
+	fmt.Fprintf(out, "  Region:    %s\n", ssoSession.SSORegion)
+	fmt.Fprintf(out, "  Account:   %s\n", cfg.SSOAccountID)
+	fmt.Fprintf(out, "  Role:      %s\n", cfg.SSORoleName)
+	if ssoSession.Name != "" {
+		fmt.Fprintf(out, "  Session:   %s\n", ssoSession.Name)
+	}
+
+	cachedCreds, _ := getcreds.ReadCliCache(cfg, ssoSession)
+	if cachedCreds != nil {
+		renderCacheCreds(out, cachedCreds)
+	}
 
 	return nil
 }
 
-func oldRunE(cmd *cobra.Command, _ []string) error {
+func renderCacheCreds(out io.Writer, creds *aws.Credentials) {
+	defer fmt.Fprintln(out)
+	fmt.Fprint(out, "  Cached:    ")
 
-	cmd.Printf("Listing SSO configurations in %s:\n", appconfig.GetAwsConfigPath())
-	cmd.Println()
+	if creds.Expired() {
+		fmt.Fprintf(out, "Expired")
+	} else {
+		fmt.Fprint(out, "Valid")
+		if creds.CanExpire {
+			fmt.Fprintf(out, " (expires %s)", creds.Expires.Local().Format(time.DateTime))
+		}
+	}
+
+}
+
+func (pl *profileLister) listSessions() error {
+
+	out := pl.cmd.OutOrStdout()
+
+	fmt.Fprintf(out, "Listing SSO Sessions in %s:\n", appconfig.GetAwsConfigPath())
+	fmt.Fprintln(out)
 
 	entries, err := GetSSOEntries()
 	if err != nil {
@@ -73,37 +110,39 @@ func oldRunE(cmd *cobra.Command, _ []string) error {
 	}
 
 	if len(entries) == 0 {
-		cmd.Println("No 'sso-session' entries found.")
+		fmt.Fprintln(out, "No 'sso-session' entries found.")
 		return nil
 	}
 
 	for _, entry := range entries {
-		cmd.Printf(utils.HeaderStyle.Render("SSO: %s")+"\n", entry.ID())
+		fmt.Fprintln(out, utils.HeaderStyle.Render("Session:", entry.ID()))
 
 		if entry.IsLegacy() {
-			cmd.Println("  " + utils.WarningStyle.Render("* This profile is using legacy configuration style *"))
+			fmt.Fprintln(out, "  "+utils.WarningStyle.Render("* This profile is using legacy configuration style *"))
 		}
 
+		fmt.Fprintln(out, "  Start URL:", entry.StartURL)
+
 		if len(entry.Profiles) > 0 {
-			cmd.Printf("  Used By: %s\n", strings.Join(entry.Profiles, ", "))
+			fmt.Fprintln(out, "  Used By:", strings.Join(entry.Profiles, ", "))
 		} else {
-			cmd.Print("  Used By: Not used by any profiles\n")
+			fmt.Fprintln(out, "  Used By: Not used by any profiles")
 		}
 
 		if token, err := awsutils.ReadTokenInfo(entry.ID()); err == nil {
 
 			if token.Expired() {
-				cmd.Printf("  Token: %s\n", utils.WarningStyle.Render("Expired"))
+				fmt.Fprintln(out, "  Token:", utils.WarningStyle.Render("Expired"))
 			} else {
-				cmd.Printf("  Token: %s, Expires: %s\n", utils.SuccessStyle.Render("Valid"), token.ExpiresAt.String())
+				fmt.Fprintf(out, "  Token: %s, Expires: %s\n", utils.SuccessStyle.Render("Valid"), token.ExpiresAt.AsTime().Format(time.DateTime))
 
 			}
 
 		} else {
-			cmd.Println("  Token: No token file found")
+			fmt.Fprintln(out, "  Token: No token file found")
 		}
 
-		cmd.Println()
+		fmt.Fprintln(out)
 	}
 
 	return nil

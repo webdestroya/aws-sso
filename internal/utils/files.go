@@ -1,3 +1,5 @@
+//go:build !testmode
+
 package utils
 
 import (

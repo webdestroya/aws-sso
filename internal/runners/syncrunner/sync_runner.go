@@ -12,6 +12,7 @@ import (
 	"github.com/webdestroya/aws-sso/internal/helpers/getcreds"
 	"github.com/webdestroya/aws-sso/internal/helpers/profilepicker"
 	"github.com/webdestroya/aws-sso/internal/utils"
+	"github.com/webdestroya/aws-sso/internal/utils/cmdutils"
 	"gopkg.in/ini.v1"
 )
 
@@ -84,7 +85,7 @@ func (opts *SyncOptions) syncCredentials(ctx context.Context, out io.Writer, cre
 		// check to make sure the existing profile isnt something else
 		if !opts.Force {
 			if !(sect.HasKey(keyAccessKey) && sect.HasKey(keySecretKey) && sect.HasKey(keySessionToken)) {
-				return fmt.Errorf("Profile %s already exists, but does not have AccessKey/SecretAccesKey/SessionToken. It probably is not an SSO profile.", profile)
+				return cmdutils.NewNonUsageErrorf("Profile %s already exists, but does not have AccessKey/SecretAccesKey/SessionToken. It probably is not an SSO profile.", profile)
 			}
 		}
 

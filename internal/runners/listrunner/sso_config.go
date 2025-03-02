@@ -1,7 +1,6 @@
 package listrunner
 
 import (
-	"fmt"
 	"maps"
 	"slices"
 	"strings"
@@ -31,7 +30,7 @@ func (s SSOEntry) IsLegacy() bool {
 
 func (s SSOEntry) String() string {
 	if s.IsLegacy() {
-		return fmt.Sprintf("Legacy: %s", s.StartURL)
+		return "Legacy: " + s.StartURL
 	}
 	return s.Name
 }
@@ -99,7 +98,6 @@ func (b *ssoEntryBuilder) buildMap() ([]SSOEntry, error) {
 	}
 
 	if len(cfgFileIni.Sections()) == 0 {
-		// cmd.Println(utils.ErrorStyle.Render("ERROR"), "Failed to read/parse config file", err.Error())
 		return nil, nil
 	}
 

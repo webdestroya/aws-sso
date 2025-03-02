@@ -12,7 +12,7 @@ func RunE(cmd *cobra.Command, args []string) error {
 
 	profile := args[0]
 
-	credentials, err := getcreds.GetAWSCredentials(cmd.Context(), cmd.OutOrStdout(), profile, getcreds.WithLoginDisabled())
+	credentials, err := getcreds.GetAWSCredentials(cmd.Context(), cmd.ErrOrStderr(), profile, getcreds.WithLoginDisabled())
 	if err != nil {
 		return err
 	}

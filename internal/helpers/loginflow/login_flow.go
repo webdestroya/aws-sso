@@ -18,7 +18,8 @@ import (
 )
 
 var (
-	ErrAuthTimeoutError = errors.New("timeout waiting for authorization")
+	ErrAuthTimeoutError = cmdutils.NewNonUsageError("timeout waiting for authorization")
+	ErrAuthDeniedError  = cmdutils.NewNonUsageError("authorization was denied")
 )
 
 const (
@@ -103,6 +104,8 @@ func DoLoginFlow(ctx context.Context, out io.Writer, session *config.SSOSession,
 				fmt.Fprintln(out, utils.WarningStyle.Render(fmt.Sprintf("WARNING: Failed to open browser URL: %v", berr.Error())))
 				fmt.Fprintln(out, "You will need to visit the verification URL and enter the code manually.")
 				fmt.Fprintln(out)
+				fmt.Fprintln(out, utils.CoalesceString(*sdaResp.VerificationUri, verifUrl))
+				fmt.Fprintln(out)
 			}
 		}()
 	}
@@ -118,48 +121,54 @@ func DoLoginFlow(ctx context.Context, out io.Writer, session *config.SSOSession,
 
 	accessTokenInvalidAfter := time.Now().Add(time.Duration(sdaResp.ExpiresIn) * time.Second)
 
-	// spinCtx, cancelSpin := context.WithCancel(ctx)
-	// defer cancelSpin()
-
-	// spin := spinner.New().Context(spinCtx).Title("Waiting for authentication...")
-
-	// go func() {
-	// 	e := spin.Run()
-	// 	fmt.Printf("SPIN ERR=%T msg=%v\n", e, e)
-	// }()
-
 	fmt.Fprintln(out, "Waiting for authentication...")
 
-	for {
-		// token expired dont bother
-		if time.Now().After(accessTokenInvalidAfter) {
-			return nil, ErrAuthTimeoutError
-		}
+	authCheckFunc := func() (*awsutils.AwsTokenInfo, error) {
 
-		createTokenOut, err := client.CreateToken(ctx, createTokenInput)
-		if err != nil {
-			var authPendingError *ssooidcTypes.AuthorizationPendingException
-			if errors.As(err, &authPendingError) {
-				time.Sleep(time.Duration(sdaResp.Interval) * time.Second)
-				continue
-			} else {
+		for {
+			// token expired dont bother
+			if time.Now().After(accessTokenInvalidAfter) {
+				return nil, ErrAuthTimeoutError
+			}
+
+			createTokenOut, err := client.CreateToken(ctx, createTokenInput)
+			if err != nil {
+				var authPendingError *ssooidcTypes.AuthorizationPendingException
+				if errors.As(err, &authPendingError) {
+					time.Sleep(time.Duration(sdaResp.Interval) * time.Second)
+					continue
+				}
+
+				var expiredTokenError *ssooidcTypes.ExpiredTokenException
+				if errors.As(err, &expiredTokenError) {
+					return nil, ErrAuthTimeoutError
+				}
+
+				var accessDeniedError *ssooidcTypes.AccessDeniedException
+				if errors.As(err, &accessDeniedError) {
+					return nil, ErrAuthDeniedError
+				}
+
 				return nil, err
 			}
+
+			expiresAt := awsutils.RFC3339(time.Now().Add(time.Duration(createTokenOut.ExpiresIn) * time.Second))
+
+			return &awsutils.AwsTokenInfo{
+				AccessToken:  *createTokenOut.AccessToken,
+				ExpiresAt:    &expiresAt,
+				RefreshToken: aws.ToString(createTokenOut.RefreshToken),
+				ClientID:     *regResp.ClientId,
+				ClientSecret: *regResp.ClientSecret,
+			}, nil
 		}
 
-		expiresAt := awsutils.RFC3339(time.Now().Add(time.Duration(createTokenOut.ExpiresIn) * time.Second))
-
-		tokenObj = &awsutils.AwsTokenInfo{
-			AccessToken:  *createTokenOut.AccessToken,
-			ExpiresAt:    &expiresAt,
-			RefreshToken: aws.ToString(createTokenOut.RefreshToken),
-			ClientID:     *regResp.ClientId,
-			ClientSecret: *regResp.ClientSecret,
-		}
-		break
 	}
 
-	// cancelSpin()
+	tokenObj, err = authCheckFunc()
+	if err != nil {
+		return nil, err
+	}
 
 	fmt.Fprintln(out, "Authentication successful! Writing token...")
 	fmt.Fprintln(out)

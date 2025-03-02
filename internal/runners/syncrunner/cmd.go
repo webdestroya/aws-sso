@@ -27,7 +27,7 @@ type SyncOptions struct {
 	CredentialsOutputPath string
 }
 
-func NewCmdSync(f *factory.Factory) *cobra.Command {
+func NewSyncCmd(f *factory.Factory) *cobra.Command {
 
 	opts := &SyncOptions{
 		Login:                 true,
@@ -67,7 +67,7 @@ func NewCmdSync(f *factory.Factory) *cobra.Command {
 
 	cmd.Flags().BoolVar(&opts.IgnoreErrors, "ignore-errors", false, "Ignore errors when obtaining credentials, continuing to next profile.")
 
-	cmd.Flags().BoolVar(&opts.NoCliCache, "no-cli-cache", false, "Skips setting credentials for the AWS CLI cache.")
+	cmd.Flags().BoolVar(&opts.NoCliCache, "no-cli-cache", false, "Skips setting the credentials cache for AWS CLI.")
 
 	return cmd
 }

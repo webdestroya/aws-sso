@@ -23,10 +23,6 @@ func ValidSingleProfileArg(cmd *cobra.Command, args []string) error {
 
 	profiles := Profiles()
 
-	if len(profiles) == 0 {
-
-	}
-
 	profile := args[0]
 	if !slices.Contains(profiles, profile) {
 		return fmt.Errorf("invalid argument: %s is not an SSO profile", profile)

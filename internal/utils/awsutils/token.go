@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/credentials/ssocreds"
+	"github.com/webdestroya/aws-sso/internal/utils"
 )
 
 type AwsTokenInfo struct {
@@ -56,7 +56,11 @@ func (t *AwsTokenInfo) Expired() bool {
 type RFC3339 time.Time
 
 func (r RFC3339) String() string {
-	return time.Time(r).String()
+	return r.AsTime().String()
+}
+
+func (r RFC3339) AsTime() time.Time {
+	return time.Time(r)
 }
 
 func parseRFC3339(v string) (RFC3339, error) {
@@ -94,6 +98,16 @@ func WriteAWSToken(filename string, t AwsTokenInfo) error {
 	return storeCachedToken(filename, t, 0600)
 }
 
+func storeCachedToken(filename string, t AwsTokenInfo, fileMode os.FileMode) error {
+	data, err := json.Marshal(t)
+	if err != nil {
+		return err
+	}
+
+	return utils.AtomicWriteFile(filename, data, fileMode)
+}
+
+/*
 func storeCachedToken(filename string, t AwsTokenInfo, fileMode os.FileMode) (err error) {
 	// tmpFilename := filename + ".tmp-" + strconv.FormatInt(sdk.NowTime().UnixNano(), 10)
 	tmpFilename := filename + ".tmp-" + strconv.FormatInt(time.Now().UnixNano(), 10)
@@ -130,3 +144,4 @@ func writeCacheFile(filename string, fileMode os.FileMode, t AwsTokenInfo) (err 
 
 	return nil
 }
+*/

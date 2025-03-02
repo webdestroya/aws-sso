@@ -15,7 +15,6 @@ func NewCredentialsCmd(f *factory.Factory) *cobra.Command {
 		ValidArgsFunction:     profilepicker.ProfileCompletions,
 		Args:                  cobra.MatchAll(profilepicker.ValidSingleProfileArg),
 		RunE:                  RunE,
-		// SilenceUsage:          true,
 	}
 
 	return cmd
