@@ -1,6 +1,4 @@
-//go:build !testmode
-
-package utils
+package fsutils
 
 import (
 	"errors"
@@ -11,7 +9,13 @@ import (
 	"time"
 )
 
-func AtomicWriteFile(filename string, data []byte, fileMode os.FileMode) error {
+type fsutilDefault struct{}
+
+func init() {
+	Global = &fsutilDefault{}
+}
+
+func (fsutilDefault) AtomicWriteFile(filename string, data []byte, fileMode os.FileMode) error {
 	tmpFilename := filename + ".tmp-" + strconv.FormatInt(time.Now().UnixNano(), 10)
 	if err := WriteFile(tmpFilename, data, fileMode); err != nil {
 		return err
@@ -23,9 +27,8 @@ func AtomicWriteFile(filename string, data []byte, fileMode os.FileMode) error {
 	return nil
 }
 
-func WriteFile(filename string, data []byte, fileMode os.FileMode) (err error) {
-
-	err = EnsureDir(path.Dir(filename))
+func (fsutilDefault) WriteFile(filename string, data []byte, fileMode os.FileMode) (err error) {
+	err = ensureDir(path.Dir(filename))
 	if err != nil {
 		return err
 	}
@@ -47,7 +50,15 @@ func WriteFile(filename string, data []byte, fileMode os.FileMode) (err error) {
 	return err
 }
 
-func EnsureDir(dirName string) error {
+func (fsutilDefault) ReadFile(v string) ([]byte, error) {
+	return os.ReadFile(v)
+}
+
+func (fsutilDefault) Stat(v string) (os.FileInfo, error) {
+	return os.Stat(v)
+}
+
+func ensureDir(dirName string) error {
 	err := os.MkdirAll(dirName, os.ModeDir|0755)
 	if err == nil {
 		return nil

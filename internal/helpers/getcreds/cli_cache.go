@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -18,6 +17,7 @@ import (
 	"github.com/webdestroya/aws-sso/internal/appconfig"
 	"github.com/webdestroya/aws-sso/internal/utils"
 	"github.com/webdestroya/aws-sso/internal/utils/awsutils"
+	"github.com/webdestroya/aws-sso/internal/utils/fsutils"
 )
 
 type cliCacheCredentials struct {
@@ -94,7 +94,7 @@ func writeCliCache(cfg config.SharedConfig, session *config.SSOSession, creds *a
 		return err
 	}
 
-	return utils.WriteFile(CLICacheFile(cfg, session), jsonOut, 0600)
+	return fsutils.WriteFile(CLICacheFile(cfg, session), jsonOut, 0600)
 
 }
 
@@ -103,7 +103,7 @@ func ReadCliCache(cfg config.SharedConfig, session *config.SSOSession) (*aws.Cre
 
 	cacheFile := CLICacheFile(cfg, session)
 
-	data, err := os.ReadFile(cacheFile)
+	data, err := fsutils.ReadFile(cacheFile)
 	if err != nil {
 		return nil, err
 	}

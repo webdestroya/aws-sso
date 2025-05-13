@@ -52,7 +52,7 @@ func DoLoginFlow(ctx context.Context, out io.Writer, session *config.SSOSession,
 		return nil, err
 	}
 
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(session.SSORegion))
+	cfg, err := awsutils.LoadDefaultConfig(ctx, config.WithRegion(session.SSORegion))
 	if err != nil {
 		return nil, err
 	}

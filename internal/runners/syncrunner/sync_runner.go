@@ -13,6 +13,7 @@ import (
 	"github.com/webdestroya/aws-sso/internal/helpers/profilepicker"
 	"github.com/webdestroya/aws-sso/internal/utils"
 	"github.com/webdestroya/aws-sso/internal/utils/cmdutils"
+	"github.com/webdestroya/aws-sso/internal/utils/fsutils"
 	"gopkg.in/ini.v1"
 )
 
@@ -71,7 +72,7 @@ func RunE(opts *SyncOptions, cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return utils.AtomicWriteFile(credsFile, buf.Bytes(), 0600)
+	return fsutils.AtomicWriteFile(credsFile, buf.Bytes(), 0600)
 }
 
 func (opts *SyncOptions) syncCredentials(ctx context.Context, out io.Writer, credsIni *ini.File, profile string) error {

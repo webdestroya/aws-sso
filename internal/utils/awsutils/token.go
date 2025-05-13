@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/credentials/ssocreds"
-	"github.com/webdestroya/aws-sso/internal/utils"
+	"github.com/webdestroya/aws-sso/internal/utils/fsutils"
 )
 
 type AwsTokenInfo struct {
@@ -30,7 +30,7 @@ func ReadTokenInfo(sessionName string) (*AwsTokenInfo, error) {
 }
 
 func ReadTokenFile(tokenFilePath string) (*AwsTokenInfo, error) {
-	data, err := os.ReadFile(tokenFilePath)
+	data, err := fsutils.ReadFile(tokenFilePath)
 	if err != nil {
 		return nil, err
 	}
@@ -104,5 +104,5 @@ func storeCachedToken(filename string, t AwsTokenInfo, fileMode os.FileMode) err
 		return err
 	}
 
-	return utils.AtomicWriteFile(filename, data, fileMode)
+	return fsutils.AtomicWriteFile(filename, data, fileMode)
 }
