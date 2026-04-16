@@ -1,0 +1,32 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - .github/workflows/test.yml
+      - .tool-versions
+      - internal/**
+      - cmd/**
+      - go.mod
+      - go.sum
+      - main.go
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Go Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: .tool-versions
+
+      - name: Run tests
+        run: go test -v -race -count=1 ./...

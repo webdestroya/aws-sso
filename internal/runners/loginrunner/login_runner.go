@@ -46,6 +46,7 @@ func runProfiles(opts *LoginOptions, cmd *cobra.Command, profiles []string) erro
 
 	lFlowOpts := []loginflow.LoginFlowOption{
 		loginflow.WithBrowser(!opts.NoBrowser),
+		loginflow.WithDeviceCode(opts.UseDeviceCode),
 	}
 
 	for _, session := range cfgmap {

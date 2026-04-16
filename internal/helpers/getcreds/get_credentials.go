@@ -60,7 +60,7 @@ func GetAWSCredentials(ctx context.Context, out io.Writer, profile string, optFn
 		}
 	}
 
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(ssoSession.SSORegion))
+	cfg, err := awsutils.LoadDefaultConfig(ctx, config.WithRegion(ssoSession.SSORegion))
 	if err != nil {
 		return nil, err
 	}

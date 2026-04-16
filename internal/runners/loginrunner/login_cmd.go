@@ -7,7 +7,8 @@ import (
 )
 
 type LoginOptions struct {
-	NoBrowser bool
+	NoBrowser     bool
+	UseDeviceCode bool
 }
 
 // https://github.com/synfinatic/aws-sso-cli/blob/main/internal/sso/awssso.go
@@ -29,6 +30,7 @@ func NewLoginCmd(f *factory.Factory) *cobra.Command {
 	}
 
 	cmd.Flags().BoolVar(&opts.NoBrowser, "no-browser", false, "Disable opening the browser automatically")
+	cmd.Flags().BoolVar(&opts.UseDeviceCode, "use-device-code", false, "Use the legacy device code method")
 
 	return cmd
 }
